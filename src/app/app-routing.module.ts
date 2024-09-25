@@ -15,6 +15,10 @@ const routes: Routes = [
     path: 'reserva',
     loadChildren: () => import('./pages/reserva/reserva.module').then( m => m.ReservaPageModule)
   },
+  {
+    path: 'login',
+    loadChildren: () => import('./pages/login/login.module').then( m => m.LoginPageModule)
+  },
 ];
 
 @NgModule({
