@@ -1,0 +1,38 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Datos del conductor</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Datos del conductor</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+        <div class="ion-margin">
+          <ion-list>
+            <ion-item style="margin-bottom: auto">
+              <ion-input label="Nombre" placeholder="Ingresa tu nombre"></ion-input>
+            </ion-item>
+            <ion-item>
+              <ion-input label="Auto" placeholder="Ingresa el modelo de auto"></ion-input>
+            </ion-item>
+            <ion-item>
+              <ion-input label="Patente" placeholder="Ingresa tu patente"></ion-input>
+            </ion-item>
+            <ion-item>
+              <ion-input label="Contacto" value="+569"></ion-input>
+            </ion-item>
+            <ion-item>
+              <ion-input label="Destino" placeholder="Ingrese comuna destino"></ion-input>
+            </ion-item>
+          </ion-list>
+        </div>
+        <div class="ion-margin" class="ion-text-center">
+          <ion-button ion shape="round">
+            Guardar
+          </ion-button>
+        </div>
+</ion-content>
