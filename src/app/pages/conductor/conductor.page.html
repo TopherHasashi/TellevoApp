@@ -1,17 +1,18 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>Datos del conductor</ion-title>
+    <ion-title>TellevoApp</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
   <ion-header collapse="condense">
     <ion-toolbar>
-      <ion-title size="large">Datos del conductor</ion-title>
+      <ion-title size="large">TellevoApp</ion-title>
     </ion-toolbar>
   </ion-header>
-
+    
         <div class="ion-margin">
+          <h1 class="ion-text-center">Datos del conductor</h1>
           <ion-list>
             <ion-item style="margin-bottom: auto">
               <ion-input label="Nombre" placeholder="Ingresa tu nombre"></ion-input>
@@ -31,8 +32,9 @@
           </ion-list>
         </div>
         <div class="ion-margin" class="ion-text-center">
-          <ion-button ion shape="round">
+          <ion-button id="open-toast" ion shape="round">
             Guardar
           </ion-button>
+          <ion-toast trigger="open-toast" message="Guardado!" [duration]="2000"></ion-toast>
         </div>
 </ion-content>
