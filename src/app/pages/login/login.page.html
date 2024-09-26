@@ -11,7 +11,7 @@
     </ion-toolbar>
   </ion-header>
   <div class="ion-margin">
-    <h1 class="ion-text-center">Bienvenido!</h1>
+    <h1 class="ion-text-center">Bienvenido Alejandro!</h1>
     <ion-input
   type="email"
   fill="outline"
@@ -26,6 +26,9 @@
 <ion-input label="Contraseña" type="password" label-placement="floating" fill="outline" placeholder="Ingresa contraseña"></ion-input>
   </div>
   <div class="ion-margin" class="ion-text-center">
+    <ion-button [routerLink]="['/recuperar']" ion shape="round">
+      Recuperar
+    </ion-button>
     <ion-button [routerLink]="['/home']" ion shape="round">
       Ingresar
     </ion-button>

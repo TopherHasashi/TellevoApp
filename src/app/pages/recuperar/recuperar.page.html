@@ -1,0 +1,30 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>TellevoApp</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">TellevoApp</ion-title>
+    </ion-toolbar>
+  </ion-header>
+  <ion-content [fullscreen]="true">
+    <ion-header collapse="condense">
+      <ion-toolbar>
+        <ion-title size="large">TellevoApp</ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <div class="ion-margin">
+      <h1 class="ion-text-center">Recuperar contraseña</h1>
+  <ion-input label="Nueva Contraseña" type="password" label-placement="floating" fill="outline" placeholder="Ingresa nueva contraseña"></ion-input>
+  <br>
+  <ion-input label="Repite Contraseña" type="password" label-placement="floating" fill="outline" placeholder="Ingresar nuevamente"></ion-input>
+    </div>
+    <div class="ion-margin" class="ion-text-center">
+      <ion-button [routerLink]="['/login']" ion shape="round">
+        Cambiar
+      </ion-button>
+    </div>
+</ion-content>
