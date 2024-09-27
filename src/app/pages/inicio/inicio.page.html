@@ -5,12 +5,10 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" class="welcome-content">
-    <h2 class="app-title">TellevoApp</h2>
   <div class="ion-margin">
       <img src="../../../assets/icon/emojifeliz.png" alt="Imagenepica" class="imagen-epica">
+      <h5>Bienvenido a TellevoApp, una aplicacion que permite a los estudiantes de DuocUC organizarse 
+        y coordinar viajes compartidos utilizando vehículos de compañeros que cuentan con movilización propia. </h5>
+      <ion-button expand="block" [routerLink]="['/login']">Comenzar!</ion-button>
   </div>
-    <p class="app-description">
-      Bienvenido a TellevoApp, una aplicacion que permite a los estudiantes de Duoc UC organizarse y coordinar viajes compartidos utilizando vehículos de compañeros que cuentan con movilización propia. 
-    </p>
-    <ion-button class="boton-login" expand="full" [routerLink]="['/login']">Comenzar!</ion-button>
 </ion-content>
