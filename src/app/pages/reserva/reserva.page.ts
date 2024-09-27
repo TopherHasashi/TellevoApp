@@ -11,5 +11,14 @@ export class ReservaPage implements OnInit {
 
   ngOnInit() {
   }
-
+  public toastButtons = [
+    {
+      text: 'Confirmo',
+      role: 'accept',
+    },
+    {
+      text: 'Cancelar',
+      role: 'cancel',
+    },
+  ];
 }

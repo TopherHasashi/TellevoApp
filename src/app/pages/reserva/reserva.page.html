@@ -8,7 +8,7 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <h1 class="ion-text-center">Reserva tu vehiculo</h1>
+  <h3 class="ion-text-center">Reserva tu vehiculo</h3> 
   <ion-card>
     <ion-card-header>
       <div style="display: flex; align-items: center;">
@@ -26,7 +26,7 @@
   
     <div class="ion-text-end">
       <ion-button id="open-toast1" fill="clear">Reservar</ion-button>
-      <ion-toast trigger="open-toast1" message="Reservado!" [duration]="1000"></ion-toast>
+      <ion-toast trigger="open-toast1" message="Confirmar reserva?" [buttons]="toastButtons" layout="stacked"></ion-toast>
     </div>
   </ion-card>
 
@@ -46,7 +46,7 @@
     </ion-card-content>
     <div class="ion-text-end">
       <ion-button id="open-toast2" fill="clear">Reservar</ion-button>
-      <ion-toast trigger="open-toast2" message="Reservado!" [duration]="1000"></ion-toast>
+      <ion-toast trigger="open-toast2" message="Confirmar reserva?" [buttons]="toastButtons" layout="stacked"></ion-toast>
     </div>
     
   </ion-card>
@@ -68,7 +68,7 @@
   
     <div class="ion-text-end">
       <ion-button id="open-toast3" fill="clear">Reservar</ion-button>
-      <ion-toast trigger="open-toast3" message="Reservado!" [duration]="1000"></ion-toast>
+      <ion-toast trigger="open-toast3" message="Confirmar reserva?" [buttons]="toastButtons" layout="stacked"></ion-toast>
     </div>
   </ion-card>
 </ion-content>
