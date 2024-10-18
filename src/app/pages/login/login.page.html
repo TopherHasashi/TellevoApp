@@ -1,30 +1,42 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title >TeLlevoAPP  </ion-title>
+    <ion-title>TeLlevoAPP</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
   <div class="ion-margin">
     <h3 class="ion-text-center">Ingresa tu usuario</h3>
+
     <ion-input
-  type="email"
-  fill="outline"
-  label="Correo"
-  labelPlacement="floating"
-  helperText="Ingresa un correo institucional"
-  errorText="Correo invalido"
-  ngModel
-  email
-></ion-input>
-<br>
-<ion-input label="Contraseña" type="password" label-placement="floating" fill="outline" placeholder="Ingresa contraseña"></ion-input>
+      type="email"
+      fill="outline"
+      label="Correo"
+      labelPlacement="floating"
+      helperText="Ingresa un correo institucional"
+      errorText="Correo inválido"
+      [(ngModel)]="email" 
+    ></ion-input>
+
+    <br>
+
+    <ion-input
+      label="Contraseña"
+      type="password"
+      label-placement="floating"
+      fill="outline"
+      placeholder="Ingresa contraseña"
+      [(ngModel)]="password" 
+    ></ion-input>
   </div>
-  <div class="ion-margin" class="ion-text-center">
-    <ion-button [routerLink]="['/recuperar']" ion shape="round">
+
+  <div class="ion-margin ion-text-center">
+    <ion-button [routerLink]="['/recuperar']" shape="round">
       Recuperar
     </ion-button>
-    <ion-button [routerLink]="['/home']" ion shape="round">
+
+    <!-- Botón que guarda los datos en LocalStorage -->
+    <ion-button (click)="login()" shape="round">
       Ingresar
     </ion-button>
   </div>
