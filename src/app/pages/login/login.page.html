@@ -5,39 +5,44 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <div class="ion-margin">
-    <h3 class="ion-text-center">Ingresa tu usuario</h3>
 
-    <ion-input
-      type="email"
-      fill="outline"
-      label="Correo"
-      labelPlacement="floating"
-      helperText="Ingresa un correo institucional"
-      errorText="Correo inválido"
-      [(ngModel)]="email" 
-    ></ion-input>
-
-    <br>
-
-    <ion-input
-      label="Contraseña"
-      type="password"
-      label-placement="floating"
-      fill="outline"
-      placeholder="Ingresa contraseña"
-      [(ngModel)]="password" 
-    ></ion-input>
-  </div>
-
-  <div class="ion-margin ion-text-center">
-    <ion-button [routerLink]="['/recuperar']" shape="round">
-      Recuperar
-    </ion-button>
-
-    <!-- Botón que guarda los datos en LocalStorage -->
-    <ion-button (click)="login()" shape="round">
-      Ingresar
-    </ion-button>
-  </div>
+  <form (ngSubmit)="login()" >
+    <div class="ion-margin">
+      <h3 class="ion-text-center">Ingresa tu usuario</h3>
+  
+      <ion-input
+        type="email"
+        fill="outline"
+        label="Correo"
+        labelPlacement="floating"
+        helperText="Ingresa un correo institucional"
+        errorText="Correo inválido"
+        name="email"
+        [(ngModel)]="email" 
+      ></ion-input>
+  
+      <br>
+  
+      <ion-input
+        label="Contraseña"
+        type="password"
+        label-placement="floating"
+        fill="outline"
+        placeholder="Ingresa contraseña"
+        name="password"
+        [(ngModel)]="password" 
+      ></ion-input>
+    </div>
+  
+    <div class="ion-margin ion-text-center">
+      <ion-button [routerLink]="['/recuperar']" shape="round">
+        Recuperar
+      </ion-button>
+  
+      <!-- Botón que guarda los datos en LocalStorage -->
+      <ion-button type="submit" shape="round">
+        Ingresar
+      </ion-button>
+    </div>
+  </form>
 </ion-content>
