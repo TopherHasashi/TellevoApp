@@ -5,11 +5,17 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-
-  <form (ngSubmit)="login()" >
+  <form  >
     <div class="ion-margin">
-      <h3 class="ion-text-center">Ingresa tu usuario</h3>
-  
+      <h3 class="ion-text-center">Crea un usuario</h3>
+      <ion-input
+        fill="outline"
+        label="Nombre"
+        labelPlacement="floating"
+        helperText="Ingresa nombre y apellido"
+        
+      ></ion-input>
+      <br>
       <ion-input
         type="email"
         fill="outline"
@@ -18,11 +24,9 @@
         helperText="Ingresa un correo institucional"
         errorText="Correo inválido"
         name="email"
-        [(ngModel)]="email" 
+        
       ></ion-input>
-  
       <br>
-  
       <ion-input
         label="Contraseña"
         type="password"
@@ -30,24 +34,13 @@
         fill="outline"
         placeholder="Ingresa contraseña"
         name="password"
-        [(ngModel)]="password" 
+        
       ></ion-input>
     </div>
   
     <div class="ion-margin ion-text-center">
-      <ion-button [routerLink]="['/recuperar']" shape="round">
-        Recuperar
-      </ion-button>
-  
-      <!-- Botón que guarda los datos en LocalStorage -->
-      <ion-button type="submit" shape="round">
-        Ingresar
-      </ion-button>
-    </div>
-    <br>
-    <div class="ion-margin ion-text-center">
-      <ion-button [routerLink]="['/registro']" shape="round">
-        Crear cuenta
+      <ion-button [routerLink]="['/login']" type="submit" shape="round">
+        Crear Usuario
       </ion-button>
     </div>
   </form>
