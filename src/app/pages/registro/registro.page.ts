@@ -15,6 +15,7 @@ export class RegistroPage {
 
   constructor(
     private afAuth: AngularFireAuth,
+    private firestore: AngularFirestore,
     private toastController: ToastController,
     private alertController: AlertController,
     private router: Router
@@ -23,6 +24,10 @@ export class RegistroPage {
   registrar() {
     this.afAuth.createUserWithEmailAndPassword(this.usr.email, this.usr.password)
       .then((userCredential) => {
+        this.firestore.collection('usuarios').doc(userCredential.user?.uid).set({
+          nombre: this.usr.nombre,
+          apellido: this.usr.apellido
+        });
         this.presentAlert();
       })
       .catch(async (error) => {
