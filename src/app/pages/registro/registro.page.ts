@@ -1,75 +1,52 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlertController, ToastController } from '@ionic/angular';
-import { Usuario } from 'src/app/interfaces/iusuario';
-import { LocaldbService } from 'src/app/service/localdb.service';
-
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { AngularFireAuth } from '@angular/fire/compat/auth';
 
 @Component({
   selector: 'app-registro',
   templateUrl: './registro.page.html',
   styleUrls: ['./registro.page.scss'],
 })
-export class RegistroPage implements OnInit {
+export class RegistroPage {
+  usr = { email: '', password: '', nombre: '', apellido: '' };
 
-
-  usr: Usuario = {
-    username: '',
-    password: '',
-    nombre: '',
-    apellido: ''
-  }
-  constructor(private db: LocaldbService,
+  constructor(
+    private afAuth: AngularFireAuth,
     private toastController: ToastController,
     private alertController: AlertController,
-    private router: Router) { }
-
-  ngOnInit() {
-  }
-
-  async presentToast(position: 'top' | 'middle' | 'bottom') {
-    const toast = await this.toastController.create({
-      message: 'El usuario ya existe',
-      duration: 1500,
-      position: position,
-      color: 'danger',
-      header: 'Error!',
-      cssClass: 'textoast',
-    });
-
-    await toast.present();
-  }
+    private router: Router
+  ) {}
 
   registrar() {
-    let buscado = this.db.obtener(this.usr.username)
-   
-    buscado.then(datos => {
-      if (datos === null) {
-        this.db.guardar(this.usr.username, this.usr);
-        //this.router.navigate(['/login'])
+    this.afAuth.createUserWithEmailAndPassword(this.usr.email, this.usr.password)
+      .then((userCredential) => {
         this.presentAlert();
-      } else {
-        this.presentToast('top');
-
-      }
-    });
-   
+      })
+      .catch(async (error) => {
+        const toast = await this.toastController.create({
+          message: `Error en el registro: ${error.message}`,
+          duration: 2000,
+          position: 'top',
+          color: 'danger'
+        });
+        await toast.present();
+      });
   }
+  
 
   async presentAlert() {
     const alert = await this.alertController.create({
-      header: 'Usuario Registrado con Exito!!!',
-      subHeader: '',
+      header: 'Usuario Registrado con Éxito',
       message: 'Ahora puedes utilizar la aplicación',
       buttons: [{
-        text:'Continuar',
-        handler:()=>{
-          
+        text: 'Continuar',
+        handler: () => {
           this.router.navigate(['/login']);
         }
       }]
     });
-
     await alert.present();
   }
 }
