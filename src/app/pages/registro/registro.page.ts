@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { AlertController, ToastController } from '@ionic/angular';
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import { AngularFireAuth } from '@angular/fire/compat/auth';
-import { Usuario } from 'src/app/interfaces/iusuario';
+import { Usuario, Vehiculo } from 'src/app/interfaces/iusuario';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 
 @Component({
@@ -13,6 +13,10 @@ import { AngularFirestore } from '@angular/fire/compat/firestore';
 })
 export class RegistroPage {
   usr: Usuario = { id: Date.now().toString(), email: '', password: '', nombre: '', apellido: '' };
+
+  tieneVehiculo: boolean = false;
+
+  vcl: Vehiculo = { idVehiculo: Date.now().toString(), Marca: "", Patente: "", Anio: 2000, Modelo:""};
 
   constructor(
     private afAuth: AngularFireAuth,
@@ -29,8 +33,16 @@ export class RegistroPage {
           id: this.usr.id,
           email: this.usr.email,
           nombre: this.usr.nombre,
-          apellido: this.usr.apellido
+          apellido: this.usr.apellido,
+          Vehiculo: this.tieneVehiculo ? {
+            idVehiculo: this.vcl.idVehiculo,
+            Patente: this.vcl.Patente,
+            Marca: this.vcl.Marca,
+            Modelo: this.vcl.Modelo,
+            anio: this.vcl.Anio
+          } : null
         });
+        
         this.presentAlert();
       })
       .catch(async (error) => {

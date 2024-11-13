@@ -27,7 +27,37 @@
       <ion-input required labelPlacement="floating" label="Apellido" name="apellido" type="text" [(ngModel)]="usr.apellido" >
       </ion-input>
     </ion-item>
-  
+
+    <ion-accordion-group>
+      <ion-accordion toggleIcon="disabled" value="first">
+        <ion-item slot="header">
+          <ion-checkbox [(ngModel)]="tieneVehiculo" name="checkbox">Tienes Vehiculo?</ion-checkbox>
+        </ion-item>
+        <div slot="content">
+          <ion-item [disabled]="!tieneVehiculo">
+            <ion-label position="floating">Patente</ion-label>
+            <ion-input [(ngModel)]="vcl.Patente" name="Patente" type="text"></ion-input>
+          </ion-item>
+
+          <ion-item [disabled]="!tieneVehiculo">
+            <ion-label position="floating">Marca</ion-label>
+            <ion-input [(ngModel)]="vcl.Marca" name="Marca" type="text"></ion-input>
+          </ion-item>
+
+          <ion-item [disabled]="!tieneVehiculo">
+            <ion-label position="floating">Modelo</ion-label>
+            <ion-input [(ngModel)]="vcl.Modelo" name="Modelo" type="text"></ion-input>
+          </ion-item>
+
+          <ion-item [disabled]="!tieneVehiculo">
+            <ion-label position="floating">Anio</ion-label>
+            <ion-input [(ngModel)]="vcl.Anio" name="Anio" type="number"></ion-input>
+          </ion-item>
+
+        </div>
+      </ion-accordion>
+    </ion-accordion-group>
+
     <ion-button expand="full" color="primary" type="submit" [disabled]="registroForm.invalid" class="ion-padding">
       <ion-text color="light">
         Registrarse

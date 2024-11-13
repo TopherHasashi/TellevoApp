@@ -4,4 +4,13 @@ export interface Usuario{
     password:string,
     nombre:string,
     apellido:string,
+    vehiculo?: Vehiculo;
+}
+
+export interface Vehiculo{
+    idVehiculo:string,
+    Patente:string,
+    Modelo:string,
+    Marca:string,
+    Anio:number,
 }
