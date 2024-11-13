@@ -12,7 +12,7 @@ import { AngularFirestore } from '@angular/fire/compat/firestore';
   styleUrls: ['./registro.page.scss'],
 })
 export class RegistroPage {
-  usr: Usuario = { email: '', password: '', nombre: '', apellido: '' };
+  usr: Usuario = { id: Date.now().toString(), email: '', password: '', nombre: '', apellido: '' };
 
   constructor(
     private afAuth: AngularFireAuth,
@@ -26,6 +26,8 @@ export class RegistroPage {
     this.afAuth.createUserWithEmailAndPassword(this.usr.email, this.usr.password)
       .then((userCredential) => {
         this.firestore.collection('usuarios').doc(userCredential.user?.uid).set({
+          id: this.usr.id,
+          email: this.usr.email,
           nombre: this.usr.nombre,
           apellido: this.usr.apellido
         });
