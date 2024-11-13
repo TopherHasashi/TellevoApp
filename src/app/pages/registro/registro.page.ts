@@ -4,6 +4,7 @@ import { AlertController, ToastController } from '@ionic/angular';
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { Usuario } from 'src/app/interfaces/iusuario';
+import { AngularFirestore } from '@angular/fire/compat/firestore';
 
 @Component({
   selector: 'app-registro',
