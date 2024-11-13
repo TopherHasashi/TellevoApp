@@ -4,44 +4,42 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <form  >
-    <div class="ion-margin">
-      <h3 class="ion-text-center">Crea un usuario</h3>
-      <ion-input
-        fill="outline"
-        label="Nombre"
-        labelPlacement="floating"
-        helperText="Ingresa nombre y apellido"
-        
-      ></ion-input>
-      <br>
-      <ion-input
-        type="email"
-        fill="outline"
-        label="Correo"
-        labelPlacement="floating"
-        helperText="Ingresa un correo institucional"
-        errorText="Correo inválido"
-        name="email"
-        
-      ></ion-input>
-      <br>
-      <ion-input
-        label="Contraseña"
-        type="password"
-        label-placement="floating"
-        fill="outline"
-        placeholder="Ingresa contraseña"
-        name="password"
-        
-      ></ion-input>
-    </div>
+<ion-content class="ion-padding" >
+  <ion-text color="secondary" class="ion-text-center" >
+    <h1>Registro de Usuario</h1>
+  </ion-text>
+  <form #registroForm="ngForm" (ngSubmit)="registrar()">
+    <ion-item>
+      <ion-input required labelPlacement="floating" label="Usuario" name="text" type="text" [(ngModel)]="usr.username" ></ion-input>
+    </ion-item>
   
-    <div class="ion-margin ion-text-center">
-      <ion-button [routerLink]="['/login']" type="submit" shape="round">
-        Crear Usuario
-      </ion-button>
-    </div>
+    <ion-item>
+      <ion-input required labelPlacement="floating" label="Contraseña" name="password" type="password" [(ngModel)]="usr.password" >
+        <!-- <ion-input-password-toggle slot="end"></ion-input-password-toggle> -->
+      </ion-input>
+    </ion-item>
+  
+    <ion-item>
+      <ion-input required labelPlacement="floating" label="Nombre" name="password" type="text" [(ngModel)]="usr.nombre" >
+      </ion-input>
+    </ion-item>
+  
+    <ion-item>
+      <ion-input required labelPlacement="floating" label="Apellido" name="apellido" type="text" [(ngModel)]="usr.apellido" >
+      </ion-input>
+    </ion-item>
+  
+    <ion-button expand="full" color="primary" type="submit" [disabled]="registroForm.invalid" class="ion-padding">
+      <ion-text color="light">
+        Registrarse
+      </ion-text>
+    </ion-button>
   </form>
-</ion-content>
+  
+  <ion-text color="tertiary" class="ion-text-center" routerLink="/login">
+    <p>Volver a login</p>
+  </ion-text>
+  
+  
+  
+  </ion-content>
