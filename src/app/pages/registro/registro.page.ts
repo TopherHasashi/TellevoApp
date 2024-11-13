@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { AlertController, ToastController } from '@ionic/angular';
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import { AngularFireAuth } from '@angular/fire/compat/auth';
+import { Usuario } from 'src/app/interfaces/iusuario';
 
 @Component({
   selector: 'app-registro',
@@ -10,7 +11,7 @@ import { AngularFireAuth } from '@angular/fire/compat/auth';
   styleUrls: ['./registro.page.scss'],
 })
 export class RegistroPage {
-  usr = { email: '', password: '', nombre: '', apellido: '' };
+  usr: Usuario = { email: '', password: '', nombre: '', apellido: '' };
 
   constructor(
     private afAuth: AngularFireAuth,
