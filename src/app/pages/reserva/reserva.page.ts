@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { ToastController } from '@ionic/angular';
+import { Reserva, Usuario, Viajes } from 'src/app/interfaces/iusuario';
 
 @Component({
   selector: 'app-reserva',
@@ -9,57 +10,64 @@ import { ToastController } from '@ionic/angular';
   styleUrls: ['./reserva.page.scss'],
 })
 export class ReservaPage implements OnInit {
-  viajes: any[] = []; // Array para almacenar los datos de cada viaje
-
+  viajes: any[] = [];
+  usuarioId: string = '';
+  nombreUsuario: string = '';
+  apellidoUsuario: string = '';
 
   constructor(
-    private firestore: AngularFirestore,
-    private toastController: ToastController,
     private afAuth: AngularFireAuth,
-  ) { }
+    private firestore: AngularFirestore,
+    private toastController: ToastController
+  ) {}
 
   ngOnInit() {
-    this.afAuth.currentUser.then(user => {
+    this.afAuth.currentUser.then((user) => {
       if (user) {
+        this.usuarioId = user.uid;
+
+        // Obtener los viajes
         this.firestore.collection('viajes').get().subscribe((snapshot) => {
           snapshot.forEach((doc) => {
             const viajeData: any = doc.data();
 
-            // Agregar datos de usuario relacionados
-            this.firestore.collection('usuarios').doc(viajeData.idUsuario).get().subscribe((userDoc) => {
-              if (userDoc.exists) {
-                const userData: any = userDoc.data();
-                viajeData.nombreUsuario = userData.nombre || '';
-                viajeData.apellidoUsuario = userData.apellido || '';
+            // Obtener datos del usuario que creó el viaje
+            this.firestore
+              .collection('usuarios')
+              .doc(viajeData.idUsuario)
+              .get()
+              .subscribe((userDoc) => {
+                if (userDoc.exists) {
+                  const userData: Usuario = userDoc.data() as Usuario;
+                  viajeData.nombreUsuario = userData.nombre || '';
+                  viajeData.apellidoUsuario = userData.apellido || '';
 
-                // Agregar datos del vehículo
-                if (userData.Vehiculo) {
-                  viajeData.vehiculo = {
-                    Marca: userData.Vehiculo.Marca || '',
-                    Modelo: userData.Vehiculo.Modelo || '',
-                    Patente: userData.Vehiculo.Patente || '',
-                  };
+                  // Agregar datos del vehículo
+                  if (userData.vehiculo) {
+                    viajeData.vehiculo = {
+                      Marca: userData.vehiculo.Marca || '',
+                      Modelo: userData.vehiculo.Modelo || '',
+                      Patente: userData.vehiculo.Patente || '',
+                    };
+                  }
                 }
-              }
-            });
 
-
-            // Agregar el viaje al array de viajes
-            this.viajes.push(viajeData);
+                // Agregar el viaje al array de viajes
+                this.viajes.push(viajeData);
+              });
           });
           console.log('Viajes cargados:', this.viajes); // Verifica los viajes cargados
         });
       }
-    })
-      .catch(async (error) => {
-        const toast = await this.toastController.create({
-          message: `Error al cargar viajes: ${error.message}`,
-          duration: 2000,
-          position: 'top',
-          color: 'danger'
-        });
-        await toast.present();
+    }).catch(async (error) => {
+      const toast = await this.toastController.create({
+        message: `Error al cargar viajes: ${error.message}`,
+        duration: 2000,
+        position: 'top',
+        color: 'danger',
       });
+      await toast.present();
+    });
   }
 
   // Función para mostrar el Toast y manejar la reserva
@@ -71,29 +79,90 @@ export class ReservaPage implements OnInit {
         {
           text: 'Confirmar',
           handler: () => {
-            // Aquí agregas la lógica para reservar el viaje
-            console.log('Reserva confirmada para:', viaje);
+            // Confirmar la reserva
             this.confirmarReserva(viaje);
-          }
+          },
         },
         {
           text: 'Cancelar',
           role: 'cancel',
           handler: () => {
             console.log('Reserva cancelada');
-          }
-        }
-      ]
+          },
+        },
+      ],
     });
     toast.present();
   }
 
-  // Lógica para confirmar la reserva (puedes hacer lo que necesites aquí, como guardar en Firestore)
-  confirmarReserva(viaje: any) {
-    // Por ejemplo, puedes agregar el viaje al historial del usuario o cambiar el estado del viaje.
-    console.log('Reserva confirmada para el viaje:', viaje);
-    // Aquí puedes agregar la lógica de confirmación y guardar la reserva en la base de datos.
-  }
+// Método para confirmar la reserva y guardarla en Firestore
+confirmarReserva(viaje: any) {
+  this.afAuth.currentUser.then((user) => {
+    if (user) {
+      // Obtener los datos del usuario desde Firestore
+      this.firestore.collection('usuarios').doc(user.uid).get().subscribe((userDoc) => {
+        if (userDoc.exists) {
+          // Cast para que TypeScript reconozca los campos nombre y apellido
+          const userData = userDoc.data() as Usuario;
 
+          // Asegurarse de que los campos 'nombre' y 'apellido' estén disponibles en Firestore
+          const nombreUsuario = userData?.nombre || 'Sin nombre';
+          const apellidoUsuario = userData?.apellido || 'Sin apellido';
 
+          // Crear los datos de la reserva
+          const reservaData: Reserva = {
+            idUsuario: user.uid,  // ID del usuario que hace la reserva
+            nombreUsuario: nombreUsuario,  // Nombre del pasajero
+            apellidoUsuario: apellidoUsuario,  // Apellido del pasajero
+            idViaje: viaje.idViaje,  // ID del viaje reservado
+            idReserva: '',  // Firestore generará el ID automáticamente
+          };
+
+          // Agregar la reserva a la colección 'reservas' de Firestore
+          this.firestore.collection('reservas').add(reservaData)
+            .then((docRef) => {
+              // El ID de la reserva se genera automáticamente por Firestore
+              reservaData.idReserva = docRef.id;  // Asignar el ID generado por Firestore a la reserva
+              console.log('Reserva confirmada y registrada con ID:', docRef.id);
+
+              // Mostrar el mensaje de éxito
+              this.toastController.create({
+                message: '¡Reserva confirmada!',
+                duration: 2000,
+                position: 'bottom',
+                color: 'success',
+              }).then((toast) => toast.present());
+            })
+            .catch((error) => {
+              console.error('Error al guardar la reserva:', error);
+              this.toastController.create({
+                message: 'Error al confirmar la reserva.',
+                duration: 2000,
+                position: 'bottom',
+                color: 'danger',
+              }).then((toast) => toast.present());
+            });
+        } else {
+          console.error('No se encontraron los datos del usuario');
+        }
+      }, (error) => {
+        console.error('Error al obtener los datos del usuario:', error);
+        this.toastController.create({
+          message: 'No se pudo obtener los datos del usuario.',
+          duration: 2000,
+          position: 'bottom',
+          color: 'danger',
+        }).then((toast) => toast.present());
+      });
+    }
+  }).catch((error) => {
+    console.error('Error al obtener el usuario:', error);
+    this.toastController.create({
+      message: 'No se pudo obtener la información del usuario.',
+      duration: 2000,
+      position: 'bottom',
+      color: 'danger',
+    }).then((toast) => toast.present());
+  });
+}
 }

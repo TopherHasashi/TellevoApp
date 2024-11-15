@@ -9,23 +9,15 @@
 
 <ion-content [fullscreen]="true">
   <h3 class="ion-text-center">Asientos Reservados</h3> 
-  <ion-card>
-    <ion-card-header>
-      <div style="display: flex; align-items: center;">
-        <ion-avatar slot="start" style="margin-right: 10px;">
-          <img src="../../../assets/icon/gato.png" alt="Honda Civic Gris">
-        </ion-avatar>
-      <ion-card-title style="margin: 0;">Carlitos Lechuga</ion-card-title>
-      </div>
-    </ion-card-header>
-  
-    <ion-card-content>
-      Reservo un asiento para hoy a las 20:30hrs
-    </ion-card-content>
-  
-    <div class="ion-text-end">
-      <ion-button id="open-toast1" fill="clear">Cancelar</ion-button>
-      <ion-toast trigger="open-toast1" message="Estas seguro?" [buttons]="toastButtons" layout="stacked"></ion-toast>
-    </div>
-  </ion-card>
+  <ion-list *ngIf="reservas.length > 0">
+    <ion-item *ngFor="let reserva of reservas">
+      <ion-label>
+        <h2>Pasajero: {{ reserva.nombreUsuario }} {{ reserva.apellidoUsuario }}</h2>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+
+  <ion-item *ngIf="reservas.length === 0">
+    <ion-label>No hay reservas para este viaje.</ion-label>
+  </ion-item>
 </ion-content>

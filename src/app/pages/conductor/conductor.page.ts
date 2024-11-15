@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { Vehiculo ,Viajes } from '../../interfaces/iusuario';
-import { Timestamp } from 'firebase/firestore';
+
 
 @Component({
   selector: 'app-conductor',
@@ -22,7 +22,8 @@ export class ConductorPage implements OnInit {
     Destino:"",
     Asientos:4,
     Costo:1000,
-    
+    idVehiculo:"",
+    idUsuario:"",
   };
 
   constructor(
