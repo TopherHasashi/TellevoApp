@@ -43,9 +43,6 @@ export class ReservaPage implements OnInit {
               }
             });
 
-            // Convierte la fecha del viaje de Timestamp a Date
-            const fechaViaje = viajeData.Fecha?.toDate();
-            viajeData.fechaViajeString = fechaViaje ? fechaViaje.toLocaleString() : '';
 
             // Agregar el viaje al array de viajes
             this.viajes.push(viajeData);
@@ -64,4 +61,39 @@ export class ReservaPage implements OnInit {
         await toast.present();
       });
   }
+
+  // Función para mostrar el Toast y manejar la reserva
+  async reservarViaje(viaje: any) {
+    const toast = await this.toastController.create({
+      message: `¿Estás seguro de reservar este viaje hacia ${viaje.Destino}?`,
+      position: 'bottom',
+      buttons: [
+        {
+          text: 'Confirmar',
+          handler: () => {
+            // Aquí agregas la lógica para reservar el viaje
+            console.log('Reserva confirmada para:', viaje);
+            this.confirmarReserva(viaje);
+          }
+        },
+        {
+          text: 'Cancelar',
+          role: 'cancel',
+          handler: () => {
+            console.log('Reserva cancelada');
+          }
+        }
+      ]
+    });
+    toast.present();
+  }
+
+  // Lógica para confirmar la reserva (puedes hacer lo que necesites aquí, como guardar en Firestore)
+  confirmarReserva(viaje: any) {
+    // Por ejemplo, puedes agregar el viaje al historial del usuario o cambiar el estado del viaje.
+    console.log('Reserva confirmada para el viaje:', viaje);
+    // Aquí puedes agregar la lógica de confirmación y guardar la reserva en la base de datos.
+  }
+
+
 }

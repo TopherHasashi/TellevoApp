@@ -22,7 +22,7 @@ export class ConductorPage implements OnInit {
     Destino:"",
     Asientos:4,
     Costo:1000,
-    Fecha:Timestamp.fromDate(new Date())
+    
   };
 
   constructor(
@@ -38,7 +38,7 @@ export class ConductorPage implements OnInit {
           Destino: this.vje.Destino,
           Asientos: this.vje.Asientos,
           Costo: this.vje.Costo,
-          Fecha: this.vje.Fecha
+          
         };
 
         // Añadimos el documento y luego obtenemos el ID generado por Firestore

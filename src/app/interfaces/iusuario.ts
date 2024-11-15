@@ -22,5 +22,5 @@ export interface Viajes{
     Destino:string,
     Asientos:number,
     Costo:number,
-    Fecha:Timestamp,
+   
 }
