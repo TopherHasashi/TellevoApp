@@ -9,26 +9,22 @@
 
 <ion-content [fullscreen]="true">
   <h3 class="ion-text-center">Reserva tu vehiculo</h3> 
-    <ion-card>
-      <ion-card-header>
-        <div style="display: flex; align-items: center;">
-          <ion-avatar slot="start" style="margin-right: 10px;">
-            <img src="../../../assets/icon/Honda Civic.PNG" alt="Honda Civic Gris">
-          </ion-avatar>
-        <ion-card-title style="margin: 0;">{{nombre}} {{apellido}}</ion-card-title>
-        </div>
-        <ion-card-subtitle></ion-card-subtitle>
-      </ion-card-header>
-      <ion-card-content>
-        <h1>{{fechaViajeString}}</h1>
-        <h2>{{vcl.Marca}} {{vcl.Modelo}} {{vcl.Anio}} {{vcl.Patente}}</h2>
-        <h3>Va en direccion a {{vje.Destino}}</h3>
-        <br>
-        <h2>Valor asiento: ${{vje.Costo}}</h2>
-      </ion-card-content>
-      <div class="ion-text-end">
-        <ion-button id="open-toast1" fill="clear">Reservar</ion-button>
-        <ion-toast trigger="open-toast1" message="Confirmar reserva de viaje?" [buttons]="toastButtons" layout="stacked"></ion-toast>
+  <ion-card *ngFor="let viaje of viajes">
+    <ion-card-header>
+      <div style="display: flex; align-items: center;">
+        <ion-avatar slot="start" style="margin-right: 10px;">
+          <img src="../../../assets/icon/Honda Civic.PNG" alt="Honda Civic Gris">
+        </ion-avatar>
+        <ion-card-title style="margin: 0;">{{ viaje.nombreUsuario }} {{ viaje.apellidoUsuario }}</ion-card-title>
       </div>
-    </ion-card>
+      <ion-card-subtitle></ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+      <h1>{{ viaje.fechaViajeString }}</h1>
+      <h2>{{ viaje.vehiculo?.Marca }} {{ viaje.vehiculo?.Modelo }} {{ viaje.vehiculo?.Patente }}</h2>
+      <h3>Va en dirección a {{ viaje.Destino }}</h3>
+      <br>
+      <h2>Valor asiento: ${{ viaje.Costo }}</h2>
+    </ion-card-content>
+  </ion-card>
 </ion-content>
