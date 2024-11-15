@@ -3,7 +3,6 @@ import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { Vehiculo ,Viajes } from '../../interfaces/iusuario';
 
-
 @Component({
   selector: 'app-conductor',
   templateUrl: './conductor.page.html',
