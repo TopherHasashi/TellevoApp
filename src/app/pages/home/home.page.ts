@@ -11,6 +11,7 @@ import { AngularFireAuth } from '@angular/fire/compat/auth';
 export class HomePage implements OnInit {
   nombre: string = '';
   apellido: string = '';
+  tieneAuto: boolean = false;
 
   constructor(
     private navCtrl: NavController,
@@ -24,10 +25,11 @@ export class HomePage implements OnInit {
       if (user) {
         this.firestore.collection('usuarios').doc(user.uid).get().subscribe((doc) => {
           if (doc.exists) {
-            const data: any = doc.data(); // Temporalmente usa `any` para evitar errores de tipado
+            const data: any = doc.data();
             console.log('Datos obtenidos:', data); // Verifica los datos en la consola
             this.nombre = data.nombre || '';
             this.apellido = data.apellido || '';
+            this.tieneAuto = data.Vehiculo !== null; // Verifica si el usuario tiene un vehículo registrado
             this.presentWelcomeToast();
           }
         });

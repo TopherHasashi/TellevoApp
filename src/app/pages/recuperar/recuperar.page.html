@@ -1,24 +1,30 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-title>TeLlevoAPP</ion-title>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/login"></ion-back-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-    <ion-header collapse="condense">
-      <ion-toolbar>
-        <ion-title size="large">TeLlevoAPP</ion-title>
-      </ion-toolbar>
-    </ion-header>
-    <div class="ion-margin">
-      <h3 class="ion-text-center">Recuperar contraseña</h3>
-  <ion-input label="Nueva Contraseña" type="password" label-placement="floating" fill="outline" placeholder="Ingresa nueva contraseña"></ion-input>
-  <br>
-  <ion-input label="Repite Contraseña" type="password" label-placement="floating" fill="outline" placeholder="Ingresar nuevamente"></ion-input>
-    </div>
-    <div class="ion-margin" class="ion-text-center">
-      <ion-button [routerLink]="['/login']" ion shape="round">
-        Cambiar
-      </ion-button>
-    </div>
+  <div class="ion-margin">
+    <h3 class="ion-text-center">Restablecer contraseña</h3>
+
+    <!-- Campo para el correo electrónico -->
+    <ion-input
+      label="Correo Electrónico"
+      type="email"
+      label-placement="floating"
+      fill="outline"
+      placeholder="Ingresa tu correo"
+      [(ngModel)]="email">
+    </ion-input>
+  </div>
+  
+  <div class="ion-margin ion-text-center">
+    <ion-button (click)="enviarCorreoRecuperacion()" shape="round">
+      Enviar enlace de restablecimiento
+    </ion-button>
+  </div>
 </ion-content>
