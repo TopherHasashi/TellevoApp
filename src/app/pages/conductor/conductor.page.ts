@@ -29,14 +29,40 @@ export class ConductorPage implements OnInit {
     private afAuth: AngularFireAuth,
     private firestore: AngularFirestore,
   ) {}  
+  crearViaje() {
+    this.afAuth.currentUser.then(user => {
+      if (user) {
+        // Definimos los datos iniciales del viaje sin el campo id
+        const viajeData = {
+          idUsuario: user.uid,
+          Destino: this.vje.Destino,
+          Asientos: this.vje.Asientos,
+          Costo: this.vje.Costo,
+          Fecha: this.vje.Fecha
+        };
 
+        // Añadimos el documento y luego obtenemos el ID generado por Firestore
+        this.firestore.collection('viajes').add(viajeData)
+          .then((docRef) => {
+            // Actualizamos el documento para agregar el ID del viaje
+            return docRef.update({ idViaje: docRef.id });
+          })
+          .then(() => {
+            console.log('Viaje creado y actualizado exitosamente');
+          })
+          .catch(error => {
+            console.error('Error al crear el viaje:', error);
+          });
+      }
+    });
+  }
   addViaje() {
   console.log('Fecha del viaje:', this.vje.Fecha);  // Verifica si la fecha está correcta
 
   const id = this.vje.idViaje || this.firestore.createId();
   this.vje.idViaje = id;
 
-  if (this.vje.Fecha) {
+  if (this.vje.Fecha,this.vcl.idVehiculo) {
     this.firestore.collection('viajes').add(this.vje)
       .then(() => {
         console.log('Viaje guardado con fecha en Firestore');
@@ -45,7 +71,7 @@ export class ConductorPage implements OnInit {
         console.error('Error al guardar el viaje en Firestore: ', error);
       });
   } else {
-    console.log('Por favor, seleccione una fecha.');
+    console.log('Por favor, seleccione una fecha y un destino.');
   }
 }  
 
