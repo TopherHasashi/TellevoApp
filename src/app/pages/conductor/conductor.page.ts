@@ -56,25 +56,6 @@ export class ConductorPage implements OnInit {
       }
     });
   }
-  addViaje() {
-  console.log('Fecha del viaje:', this.vje.Fecha);  // Verifica si la fecha está correcta
-
-  const id = this.vje.idViaje || this.firestore.createId();
-  this.vje.idViaje = id;
-
-  if (this.vje.Fecha,this.vcl.idVehiculo) {
-    this.firestore.collection('viajes').add(this.vje)
-      .then(() => {
-        console.log('Viaje guardado con fecha en Firestore');
-      })
-      .catch((error) => {
-        console.error('Error al guardar el viaje en Firestore: ', error);
-      });
-  } else {
-    console.log('Por favor, seleccione una fecha y un destino.');
-  }
-}  
-
   ngOnInit() {
     this.afAuth.currentUser.then(user => {
       if (user) {
