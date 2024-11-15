@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
-import { Vehiculo, Viajes } from '../../interfaces/iusuario';
-import { HttpClient } from '@angular/common/http';
+
 
 @Component({
   selector: 'app-conductor',
@@ -17,10 +16,7 @@ export class ConductorPage implements OnInit {
     idVehiculo: ''
   };
   vje: Viajes = {
-    idViaje: '',
-    Destino: '',
-    Asientos: 4,
-    Costo: 1000,
+
   };
   sugerencias: any[] = [];
   token: string = 'pk.eyJ1IjoidG9waGVyaGFzYXNoaSIsImEiOiJjbTNndTdsMTgwOGd2MmtwemE1M3pnYnZrIn0.DdITolvIbnmKgJUAJjjLrw'; // Reemplaza con tu token de Mapbox
