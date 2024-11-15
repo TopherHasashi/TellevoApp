@@ -9,71 +9,26 @@
 
 <ion-content [fullscreen]="true">
   <h3 class="ion-text-center">Reserva tu vehiculo</h3> 
-  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
-    <ion-refresher-content>
-    </ion-refresher-content>
-  </ion-refresher>
-      <ion-card>
-        <ion-card-header>
-          <div style="display: flex; align-items: center;">
-            <ion-avatar slot="start" style="margin-right: 10px;">
-              <img src="../../../assets/icon/Honda Civic.PNG" alt="Honda Civic Gris">
-            </ion-avatar>
-          <ion-card-title style="margin: 0;">Ruperto Arias</ion-card-title>
-          </div>
-          <ion-card-subtitle>Honda Civic Gris (RKJ674)</ion-card-subtitle>
-        </ion-card-header>
-      
-        <ion-card-content>
-          Va en direccion a Altai 145, Hualpen
-        </ion-card-content>
-      
-        <div class="ion-text-end">
-          <ion-button id="open-toast1" fill="clear">Reservar</ion-button>
-          <ion-toast trigger="open-toast1" message="Confirmar reserva?" [buttons]="toastButtons" layout="stacked"></ion-toast>
+    <ion-card>
+      <ion-card-header>
+        <div style="display: flex; align-items: center;">
+          <ion-avatar slot="start" style="margin-right: 10px;">
+            <img src="../../../assets/icon/Honda Civic.PNG" alt="Honda Civic Gris">
+          </ion-avatar>
+        <ion-card-title style="margin: 0;">{{nombre}} {{apellido}}</ion-card-title>
         </div>
-      </ion-card>
-    
-      <ion-card>
-        <ion-card-header>
-          <div style="display: flex; align-items: center;">
-            <ion-avatar slot="start" style="margin-right: 10px;">
-              <img src="../../../assets/icon/Suzuki celerio azul.PNG" alt="SuzukiCelerioAzul">
-            </ion-avatar>
-          <ion-card-title style="margin: 0;">Ignacio Sandoval</ion-card-title>
-        </div>
-          <ion-card-subtitle>Suzuki Celerio Azul (RT3674)</ion-card-subtitle>
-        </ion-card-header>
-      
-        <ion-card-content>
-          Va en direccion a Tamales 876, Concepcion
-        </ion-card-content>
-        <div class="ion-text-end">
-          <ion-button id="open-toast2" fill="clear">Reservar</ion-button>
-          <ion-toast trigger="open-toast2" message="Confirmar reserva?" [buttons]="toastButtons" layout="stacked"></ion-toast>
-        </div>
-        
-      </ion-card>
-    
-      <ion-card>
-        <ion-card-header>
-          <div style="display: flex; align-items: center;">
-            <ion-avatar slot="start" style="margin-right: 10px;">
-              <img src="../../../assets/icon/SuzukiSwiftRojo.PNG" alt="SuzukiSwiftRojo">
-            </ion-avatar>
-          <ion-card-title style="margin: 0;">Sebastian Molina</ion-card-title>
-        </div>
-          <ion-card-subtitle>Suzuki Swift Rojo (PWJD98)</ion-card-subtitle>
-        </ion-card-header>
-      
-        <ion-card-content>
-          Va en direccion a La Paz 6789, San Pedro de La Paz
-        </ion-card-content>
-      
-        <div class="ion-text-end">
-          <ion-button id="open-toast3" fill="clear">Reservar</ion-button>
-          <ion-toast trigger="open-toast3" message="Confirmar reserva?" [buttons]="toastButtons" layout="stacked"></ion-toast>
-        </div>
-      </ion-card>
-
+        <ion-card-subtitle></ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <h1>{{fechaViajeString}}</h1>
+        <h2>{{vcl.Marca}} {{vcl.Modelo}} {{vcl.Anio}} {{vcl.Patente}}</h2>
+        <h3>Va en direccion a {{vje.Destino}}</h3>
+        <br>
+        <h2>Valor asiento: ${{vje.Costo}}</h2>
+      </ion-card-content>
+      <div class="ion-text-end">
+        <ion-button id="open-toast1" fill="clear">Reservar</ion-button>
+        <ion-toast trigger="open-toast1" message="Confirmar reserva de viaje?" [buttons]="toastButtons" layout="stacked"></ion-toast>
+      </div>
+    </ion-card>
 </ion-content>
