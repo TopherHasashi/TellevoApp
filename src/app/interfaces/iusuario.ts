@@ -25,6 +25,7 @@ export interface Usuario {
   }
   
   export interface Reserva {
+    idConductor: string;
     idReserva: string;
     idUsuario: string;
     idViaje: string;

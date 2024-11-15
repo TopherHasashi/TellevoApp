@@ -95,74 +95,75 @@ export class ReservaPage implements OnInit {
     toast.present();
   }
 
-// Método para confirmar la reserva y guardarla en Firestore
-confirmarReserva(viaje: any) {
-  this.afAuth.currentUser.then((user) => {
-    if (user) {
-      // Obtener los datos del usuario desde Firestore
-      this.firestore.collection('usuarios').doc(user.uid).get().subscribe((userDoc) => {
-        if (userDoc.exists) {
-          // Cast para que TypeScript reconozca los campos nombre y apellido
-          const userData = userDoc.data() as Usuario;
-
-          // Asegurarse de que los campos 'nombre' y 'apellido' estén disponibles en Firestore
-          const nombreUsuario = userData?.nombre || 'Sin nombre';
-          const apellidoUsuario = userData?.apellido || 'Sin apellido';
-
-          // Crear los datos de la reserva
-          const reservaData: Reserva = {
-            idUsuario: user.uid,  // ID del usuario que hace la reserva
-            nombreUsuario: nombreUsuario,  // Nombre del pasajero
-            apellidoUsuario: apellidoUsuario,  // Apellido del pasajero
-            idViaje: viaje.idViaje,  // ID del viaje reservado
-            idReserva: '',  // Firestore generará el ID automáticamente
-          };
-
-          // Agregar la reserva a la colección 'reservas' de Firestore
-          this.firestore.collection('reservas').add(reservaData)
-            .then((docRef) => {
-              // El ID de la reserva se genera automáticamente por Firestore
-              reservaData.idReserva = docRef.id;  // Asignar el ID generado por Firestore a la reserva
-              console.log('Reserva confirmada y registrada con ID:', docRef.id);
-
-              // Mostrar el mensaje de éxito
-              this.toastController.create({
-                message: '¡Reserva confirmada!',
-                duration: 2000,
-                position: 'bottom',
-                color: 'success',
-              }).then((toast) => toast.present());
-            })
-            .catch((error) => {
-              console.error('Error al guardar la reserva:', error);
-              this.toastController.create({
-                message: 'Error al confirmar la reserva.',
-                duration: 2000,
-                position: 'bottom',
-                color: 'danger',
-              }).then((toast) => toast.present());
-            });
-        } else {
-          console.error('No se encontraron los datos del usuario');
-        }
-      }, (error) => {
-        console.error('Error al obtener los datos del usuario:', error);
-        this.toastController.create({
-          message: 'No se pudo obtener los datos del usuario.',
-          duration: 2000,
-          position: 'bottom',
-          color: 'danger',
-        }).then((toast) => toast.present());
-      });
-    }
-  }).catch((error) => {
-    console.error('Error al obtener el usuario:', error);
-    this.toastController.create({
-      message: 'No se pudo obtener la información del usuario.',
-      duration: 2000,
-      position: 'bottom',
-      color: 'danger',
-    }).then((toast) => toast.present());
-  });
-}
+  confirmarReserva(viaje: any) {
+    this.afAuth.currentUser.then((user) => {
+      if (user) {
+        // Obtener los datos del usuario desde Firestore
+        this.firestore.collection('usuarios').doc(user.uid).get().subscribe((userDoc) => {
+          if (userDoc.exists) {
+            // Cast para que TypeScript reconozca los campos nombre y apellido
+            const userData = userDoc.data() as Usuario;
+  
+            // Asegurarse de que los campos 'nombre' y 'apellido' estén disponibles en Firestore
+            const nombreUsuario = userData?.nombre || 'Sin nombre';
+            const apellidoUsuario = userData?.apellido || 'Sin apellido';
+  
+            // Crear los datos de la reserva
+            const reservaData: Reserva = {
+              idUsuario: user.uid,  // ID del usuario que hace la reserva
+              nombreUsuario: nombreUsuario,  // Nombre del pasajero
+              apellidoUsuario: apellidoUsuario,  // Apellido del pasajero
+              idViaje: viaje.idViaje,  // ID del viaje reservado
+              idReserva: '',  // Firestore generará el ID automáticamente
+              idConductor: viaje.idUsuario,  // ID del conductor que creó el viaje
+            };
+  
+            // Agregar la reserva a la colección 'reservas' de Firestore
+            this.firestore.collection('reservas').add(reservaData)
+              .then((docRef) => {
+                // El ID de la reserva se genera automáticamente por Firestore
+                reservaData.idReserva = docRef.id;  // Asignar el ID generado por Firestore a la reserva
+                console.log('Reserva confirmada y registrada con ID:', docRef.id);
+  
+                // Mostrar el mensaje de éxito
+                this.toastController.create({
+                  message: '¡Reserva confirmada!',
+                  duration: 2000,
+                  position: 'bottom',
+                  color: 'success',
+                }).then((toast) => toast.present());
+              })
+              .catch((error) => {
+                console.error('Error al guardar la reserva:', error);
+                this.toastController.create({
+                  message: 'Error al confirmar la reserva.',
+                  duration: 2000,
+                  position: 'bottom',
+                  color: 'danger',
+                }).then((toast) => toast.present());
+              });
+          } else {
+            console.error('No se encontraron los datos del usuario');
+          }
+        }, (error) => {
+          console.error('Error al obtener los datos del usuario:', error);
+          this.toastController.create({
+            message: 'No se pudo obtener los datos del usuario.',
+            duration: 2000,
+            position: 'bottom',
+            color: 'danger',
+          }).then((toast) => toast.present());
+        });
+      }
+    }).catch((error) => {
+      console.error('Error al obtener el usuario:', error);
+      this.toastController.create({
+        message: 'No se pudo obtener la información del usuario.',
+        duration: 2000,
+        position: 'bottom',
+        color: 'danger',
+      }).then((toast) => toast.present());
+    });
+  }
+  
 }
