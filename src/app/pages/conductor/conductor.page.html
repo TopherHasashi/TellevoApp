@@ -20,9 +20,20 @@
       <ion-item>
         <ion-input label="Patente" value="{{vcl.Patente}}"></ion-input>
       </ion-item>
+      
+      <!-- Campo de destino con autocompletado -->
       <ion-item>
-        <ion-input label="Destino" placeholder="Ingrese destino" [(ngModel)]="vje.Destino"></ion-input>
+        <ion-label position="stacked">Destino</ion-label>
+        <ion-input [(ngModel)]="vje.Destino" (input)="onSearchDestino($event)" placeholder="Escribe un lugar"></ion-input>
       </ion-item>
+
+      <!-- Lista de sugerencias de autocompletado -->
+      <ion-list *ngIf="sugerencias.length > 0">
+        <ion-item *ngFor="let lugar of sugerencias" (click)="seleccionarDestino(lugar)">
+          {{ lugar.place_name }}
+        </ion-item>
+      </ion-list>
+
       <ion-item>
         <ion-label labelPlacement="stacked" >Asientos disponibles</ion-label>
         <ion-range aria-label="Range with ticks" [min]="1" [max]="4" [pin]="true" [ticks]="true"
@@ -32,18 +43,18 @@
         <ion-input label="Costo por asiento" type="number" placeholder="Ingrese un valor" [(ngModel)]="vje.Costo"></ion-input>
       </ion-item>
       <ion-item>
-        <ion-label >Fecha y hora del viaje</ion-label>
+        <ion-label>Fecha y hora del viaje</ion-label>
         <ion-button id="click-trigger">Seleccionar</ion-button>
         <ion-popover trigger="click-trigger" side="left" alignment="center" triggerAction="click">
           <ng-template>
-            <ion-datetime id="datetime" ></ion-datetime>
+            <ion-datetime id="datetime"></ion-datetime>
           </ng-template>
         </ion-popover>
-      </ion-item>     
+      </ion-item>
     </ion-list>
   </div>
-  <div class="ion-margin" class="ion-text-center">
-    <ion-button (click)="crearViaje()" [routerLink]="'/home'" id="open-toast" ion shape="round">
+  <div class="ion-margin ion-text-center">
+    <ion-button (click)="crearViaje()" [routerLink]="'/home'" id="open-toast" shape="round">
       Guardar!
     </ion-button>
     <ion-toast trigger="open-toast" message="Guardado!" [duration]="1000"></ion-toast>
