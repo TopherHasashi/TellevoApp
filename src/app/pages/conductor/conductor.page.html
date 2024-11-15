@@ -8,33 +8,44 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-        <div class="ion-margin">
-          <h3 class="ion-text-center">Datos del conductor</h3>
-          <ion-list>
-            <ion-item style="margin-bottom: auto">
-              <ion-input label="Nombre" placeholder="Ingresa tu nombre"></ion-input>
-            </ion-item>
-            <ion-item>
-              <ion-input label="Auto" placeholder="Ingresa el modelo de auto"></ion-input>
-            </ion-item>
-            <ion-item>
-              <ion-input label="Patente" placeholder="Ingresa tu patente"></ion-input>
-            </ion-item>
-            <ion-item>
-              <ion-input label="Destino" placeholder="Ingrese destino"></ion-input>
-            </ion-item>
-            <ion-item>
-              <ion-input label="Asientos" type="number" placeholder="Ingrese asientos disponibles"></ion-input>
-            </ion-item>
-            <ion-item>
-              <ion-input label="Costo de asiento" type="number" placeholder="Ingrese un valor"></ion-input>
-            </ion-item>
-          </ion-list>
-        </div>
-        <div class="ion-margin" class="ion-text-center">
-          <ion-button [routerLink]="'/home'" id="open-toast" ion shape="round">
-            Guardar
-          </ion-button>
-          <ion-toast trigger="open-toast" message="Guardado!" [duration]="1000"></ion-toast>
-        </div>
+  <div class="ion-margin">
+    <h3 class="ion-text-center">Datos del viaje</h3>
+    <ion-list>
+      <ion-item style="margin-bottom: auto">
+        <ion-input label="Nombre" value="{{ nombre }} {{ apellido }}"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-input label="Auto" value="{{vcl.Marca}} {{vcl.Modelo}}"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-input label="Patente" value="{{vcl.Patente}}"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-input label="Destino" placeholder="Ingrese destino" [(ngModel)]="vje.Destino"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label labelPlacement="stacked" >Asientos disponibles</ion-label>
+        <ion-range aria-label="Range with ticks" [min]="1" [max]="4" [pin]="true" [ticks]="true"
+        [snaps]="true" [(ngModel)]="vje.Asientos"></ion-range>
+      </ion-item>
+      <ion-item>
+        <ion-input label="Costo por asiento" type="number" placeholder="Ingrese un valor" [(ngModel)]="vje.Costo"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label >Fecha y hora del viaje</ion-label>
+        <ion-button id="click-trigger">Seleccionar</ion-button>
+        <ion-popover trigger="click-trigger" side="left" alignment="center" triggerAction="click">
+          <ng-template>
+            <ion-datetime id="datetime" [(ngModel)]="vje.Fecha"></ion-datetime>
+          </ng-template>
+        </ion-popover>
+      </ion-item>     
+    </ion-list>
+  </div>
+  <div class="ion-margin" class="ion-text-center">
+    <ion-button (click)="addViaje()" [routerLink]="'/home'" id="open-toast" ion shape="round">
+      Guardar
+    </ion-button>
+    <ion-toast trigger="open-toast" message="Guardado!" [duration]="1000"></ion-toast>
+  </div>
 </ion-content>
