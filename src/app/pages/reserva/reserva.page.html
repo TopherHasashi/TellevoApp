@@ -8,7 +8,7 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <h3 class="ion-text-center">Reserva tu vehiculo</h3> 
+  <h3 class="ion-text-center">Reserva tu vehiculo</h3>
   <ion-card *ngFor="let viaje of viajes">
     <ion-card-header>
       <div style="display: flex; align-items: center;">
@@ -22,9 +22,14 @@
     <ion-card-content>
       <h1>{{ viaje.fechaViajeString }}</h1>
       <h2>{{ viaje.vehiculo?.Marca }} {{ viaje.vehiculo?.Modelo }} {{ viaje.vehiculo?.Patente }}</h2>
-      <h3>Va en dirección a {{ viaje.Destino }}</h3>
+      <h2>Va en dirección a {{ viaje.Destino }}</h2>
       <br>
       <h2>Valor asiento: ${{ viaje.Costo }}</h2>
+      <h2>Asientos disponibles: {{viaje.Asientos}}</h2>
     </ion-card-content>
+    <ion-button expand="block" (click)="reservarViaje(viaje)">
+      Reservar
+    </ion-button>
   </ion-card>
+
 </ion-content>
