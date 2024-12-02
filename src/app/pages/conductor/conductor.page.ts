@@ -3,6 +3,7 @@ import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { Vehiculo, Viajes } from 'src/app/interfaces/iusuario';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-conductor',
@@ -25,12 +26,13 @@ export class ConductorPage implements OnInit {
     idUsuario: ''
   };
   sugerencias: any[] = [];
-  token: string = 'pk.eyJ1IjoidG9waGVyaGFzYXNoaSIsImEiOiJjbTNndTdsMTgwOGd2MmtwemE1M3pnYnZrIn0.DdITolvIbnmKgJUAJjjLrw'; // Reemplaza con tu token de Mapbox
+  token: string = 'pk.eyJ1IjoidG9waGVyaGFzYXNoaSIsImEiOiJjbTNndTdsMTgwOGd2MmtwemE1M3pnYnZrIn0.DdITolvIbnmKgJUAJjjLrw'; 
 
   constructor(
     private afAuth: AngularFireAuth,
     private firestore: AngularFirestore,
-    private http: HttpClient
+    private http: HttpClient,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -81,14 +83,15 @@ export class ConductorPage implements OnInit {
           Costo: this.vje.Costo,
         };
 
-        this.firestore.collection('viajes').add(viajeData)
-          .then((docRef) => docRef.update({ idViaje: docRef.id }))
-          .then(() => {
-            console.log('Viaje creado y actualizado exitosamente');
-          })
-          .catch(error => {
-            console.error('Error al crear el viaje:', error);
-          });
+        this.firestore.collection('viajes').add(viajeData) 
+        .then((docRef) => {
+          docRef.update({ idViaje: docRef.id }); 
+          console.log('Viaje creado y actualizado exitosamente'); 
+          this.router.navigate(['/viaje-preview', docRef.id]); 
+        })
+        .catch(error => {
+          console.error('Error al crear el viaje:', error); 
+        });      
       }
     });
   }

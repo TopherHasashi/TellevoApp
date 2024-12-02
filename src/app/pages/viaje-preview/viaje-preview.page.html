@@ -1,0 +1,26 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Previsualización del Viaje</ion-title>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Detalles del Viaje</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <p><strong>Destino:</strong> {{ viaje.Destino }}</p>
+      <p><strong>Asientos Disponibles:</strong> {{ viaje.Asientos }}</p>
+      <p><strong>Costo por Asiento:</strong> ${{ viaje.Costo }}</p>
+    </ion-card-content>
+  </ion-card>
+
+  <div class="ion-margin">
+    <ion-button expand="block" color="success" (click)="iniciarRecorrido()">Iniciar Recorrido</ion-button>
+    <ion-button expand="block" color="danger" (click)="cancelarViaje()">Cancelar Viaje</ion-button>
+  </div>
+</ion-content>
