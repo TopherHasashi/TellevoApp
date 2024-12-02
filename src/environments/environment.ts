@@ -4,16 +4,18 @@
 
 export const environment = {
   production: true,
-  firebaseConfig : {
+  firebaseConfig: {
     apiKey: "AIzaSyAXLG5Ai3ktQ_jxhD1lpNR0TREmhWhYMFc",
     authDomain: "tellevoapp-e8217.firebaseapp.com",
+    databaseURL: "https://tellevoapp-e8217-default-rtdb.firebaseio.com", // Agregado
     projectId: "tellevoapp-e8217",
     storageBucket: "tellevoapp-e8217.firebasestorage.app",
     messagingSenderId: "104776425993",
     appId: "1:104776425993:web:bda6b953879a1415308ed8",
-    measurementId: "G-Y6XEED4MR3"
+    measurementId: "G-Y6XEED4MR3",
   }
 };
+
 
 /*
  * For easier debugging in development mode, you can import the following file

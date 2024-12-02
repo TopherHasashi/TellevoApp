@@ -4,6 +4,7 @@ import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { Vehiculo, Viajes } from 'src/app/interfaces/iusuario';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { AngularFireDatabase } from '@angular/fire/compat/database';
 
 @Component({
   selector: 'app-conductor',
@@ -32,6 +33,7 @@ export class ConductorPage implements OnInit {
     private afAuth: AngularFireAuth,
     private firestore: AngularFirestore,
     private http: HttpClient,
+    private db: AngularFireDatabase,
     private router: Router
   ) {}
 
@@ -81,18 +83,26 @@ export class ConductorPage implements OnInit {
           Destino: this.vje.Destino,
           Asientos: this.vje.Asientos,
           Costo: this.vje.Costo,
+          estado: "activo", // Indica que el viaje está activo
+          idVehiculo: this.vje.idVehiculo,
+          nombreConductor: this.nombre,
+          apellidoConductor: this.apellido,
         };
-
-        this.firestore.collection('viajes').add(viajeData) 
-        .then((docRef) => {
-          docRef.update({ idViaje: docRef.id }); 
-          console.log('Viaje creado y actualizado exitosamente'); 
-          this.router.navigate(['/viaje-preview', docRef.id]); 
-        })
-        .catch(error => {
-          console.error('Error al crear el viaje:', error); 
-        });      
+  
+        const viajeRef = this.db.list('viajes'); // Referencia a la lista "viajes"
+        
+        // Usamos push() correctamente
+        const newRef = viajeRef.push(viajeData); // Esto crea el viaje y retorna la referencia
+        if (newRef) {
+          const id = newRef.key; // Obtenemos el ID del viaje
+          console.log('Viaje guardado en Realtime Database con ID:', id);
+          this.router.navigate(['/viaje-preview', id]); // Redirigir al preview
+        } else {
+          console.error('Error al crear el viaje: No se generó un ID');
+        }
       }
+    }).catch((error: any) => {
+      console.error('Error al autenticar usuario:', error);
     });
   }
 }
