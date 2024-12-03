@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
+import { AngularFireDatabase } from '@angular/fire/compat/database';
 
 @Component({
   selector: 'app-viaje-preview',
@@ -12,18 +13,26 @@ export class ViajePreviewPage implements OnInit {
 
   constructor(
     private route: ActivatedRoute, // Manejo de la ruta
-    private firestore: AngularFirestore // Acceso a Firebase
+    private firestore: AngularFirestore, // Acceso a Firebase
+    private db: AngularFireDatabase
   ) {}
 
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id'); // Obtener el ID de la URL
     if (id) {
-      this.firestore.collection('viajes').doc(id).valueChanges().subscribe((data: any) => {
-        this.viaje = data; // Cargar datos del viaje
-        console.log('Detalles del viaje:', this.viaje); // Confirmación en consola
+      this.db.object(`viajes/${id}`).valueChanges().subscribe((data: any) => {
+        if (data) {
+          this.viaje = data; // Cargar datos del viaje
+          console.log('Detalles del viaje:', this.viaje); // Confirmación en consola
+        } else {
+          console.error('No se encontraron datos para el ID:', id);
+        }
       });
+    } else {
+      console.error('ID no proporcionado en la ruta');
     }
   }
+  
 
   iniciarRecorrido() {
     console.log('Recorrido iniciado'); // Confirmación en consola

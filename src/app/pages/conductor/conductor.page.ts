@@ -90,19 +90,23 @@ export class ConductorPage implements OnInit {
         };
   
         const viajeRef = this.db.list('viajes'); // Referencia a la lista "viajes"
-        
+  
         // Usamos push() correctamente
-        const newRef = viajeRef.push(viajeData); // Esto crea el viaje y retorna la referencia
-        if (newRef) {
-          const id = newRef.key; // Obtenemos el ID del viaje
+        viajeRef.push(viajeData).then((ref) => {
+          const id = ref.key; // Obtenemos el ID del viaje generado por Firebase
           console.log('Viaje guardado en Realtime Database con ID:', id);
-          this.router.navigate(['/viaje-preview', id]); // Redirigir al preview
-        } else {
-          console.error('Error al crear el viaje: No se generó un ID');
-        }
+  
+          // Actualizamos el nodo con el ID para referencia futura
+          this.db.object(`viajes/${id}`).update({ id: id }).then(() => {
+            console.log('ID del viaje actualizado correctamente en Firebase.');
+            this.router.navigate(['/viaje-preview', id]); // Redirigir al preview
+          });
+        }).catch((error: any) => {
+          console.error('Error al guardar el viaje en Realtime Database:', error);
+        });
       }
     }).catch((error: any) => {
       console.error('Error al autenticar usuario:', error);
     });
   }
-}
+} 
