@@ -28,6 +28,7 @@ export class ConductorPage implements OnInit {
   };
   sugerencias: any[] = [];
   token: string = 'pk.eyJ1IjoidG9waGVyaGFzYXNoaSIsImEiOiJjbTNndTdsMTgwOGd2MmtwemE1M3pnYnZrIn0.DdITolvIbnmKgJUAJjjLrw'; 
+  viajeActivo: any = null; // Almacena el viaje activo del conductor
 
   constructor(
     private afAuth: AngularFireAuth,
@@ -51,6 +52,15 @@ export class ConductorPage implements OnInit {
             this.vcl.Modelo = data.Vehiculo.Modelo || '';
           }
         });
+
+        this.db
+        .list('viajes', (ref) => ref.orderByChild('idUsuario').equalTo(user.uid))
+        .valueChanges()
+        .subscribe((viajes: any[]) => {
+          this.viajeActivo = viajes.find((viaje) => viaje.estado === 'activo');
+          console.log('Viaje Activo:', this.viajeActivo);
+        });
+    
       }
     });
   }
@@ -78,35 +88,53 @@ export class ConductorPage implements OnInit {
   crearViaje() {
     this.afAuth.currentUser.then(user => {
       if (user) {
-        const viajeData = {
-          idUsuario: user.uid,
-          Destino: this.vje.Destino,
-          Asientos: this.vje.Asientos,
-          Costo: this.vje.Costo,
-          estado: "activo", // Indica que el viaje está activo
-          idVehiculo: this.vje.idVehiculo,
-          nombreConductor: this.nombre,
-          apellidoConductor: this.apellido,
-        };
-  
-        const viajeRef = this.db.list('viajes'); // Referencia a la lista "viajes"
-  
-        // Usamos push() correctamente
-        viajeRef.push(viajeData).then((ref) => {
-          const id = ref.key; // Obtenemos el ID del viaje generado por Firebase
-          console.log('Viaje guardado en Realtime Database con ID:', id);
-  
-          // Actualizamos el nodo con el ID para referencia futura
-          this.db.object(`viajes/${id}`).update({ id: id }).then(() => {
-            console.log('ID del viaje actualizado correctamente en Firebase.');
-            this.router.navigate(['/viaje-preview', id]); // Redirigir al preview
+        // Verificar si ya existe un viaje activo
+        this.db
+          .list('viajes', (ref) => ref.orderByChild('idUsuario').equalTo(user.uid))
+          .valueChanges()
+          .subscribe((viajes: any[]) => {
+            const viajeActivo = viajes.find((viaje) => viaje.estado === 'activo');
+
+            if (viajeActivo) {
+              this.mostrarToast('Ya tienes un viaje activo. No puedes crear otro.', 'warning');
+            } else {
+              // Crear el viaje si no hay uno activo
+              const viajeData = {
+                idUsuario: user.uid,
+                Destino: this.vje.Destino,
+                Asientos: this.vje.Asientos,
+                Costo: this.vje.Costo,
+                estado: 'activo',
+                idVehiculo: this.vje.idVehiculo,
+                nombreConductor: this.nombre,
+                apellidoConductor: this.apellido,
+              };
+
+              const viajeRef = this.db.list('viajes');
+              viajeRef.push(viajeData).then((ref) => {
+                const id = ref.key;
+                console.log('Viaje guardado con ID:', id);
+
+                // Actualizamos el nodo con el ID
+                this.db.object(`viajes/${id}`).update({ id: id }).then(() => {
+                  console.log('ID del viaje actualizado correctamente en Firebase.');
+                  this.router.navigate(['/viaje-preview', id]);
+                });
+              });
+            }
           });
-        }).catch((error: any) => {
-          console.error('Error al guardar el viaje en Realtime Database:', error);
-        });
       }
     }).catch((error: any) => {
       console.error('Error al autenticar usuario:', error);
     });
   }
-} 
+
+  async mostrarToast(mensaje: string, color: string) {
+    const toast = document.createElement('ion-toast');
+    toast.message = mensaje;
+    toast.duration = 2000;
+    toast.color = color;
+    document.body.appendChild(toast);
+    await toast.present();
+  }
+}

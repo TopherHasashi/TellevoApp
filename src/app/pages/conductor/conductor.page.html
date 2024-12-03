@@ -20,7 +20,7 @@
       <ion-item>
         <ion-input label="Patente" value="{{vcl.Patente}}"></ion-input>
       </ion-item>
-      
+
       <!-- Campo de destino con autocompletado -->
       <ion-item>
         <ion-label position="stacked">Destino</ion-label>
@@ -35,19 +35,28 @@
       </ion-list>
 
       <ion-item>
-        <ion-label labelPlacement="stacked" >Asientos disponibles</ion-label>
+        <ion-label labelPlacement="stacked">Asientos disponibles</ion-label>
         <ion-range aria-label="Range with ticks" [min]="1" [max]="4" [pin]="true" [ticks]="true"
-        [snaps]="true" [(ngModel)]="vje.Asientos"></ion-range>
+          [snaps]="true" [(ngModel)]="vje.Asientos"></ion-range>
       </ion-item>
       <ion-item>
         <ion-input label="Costo por asiento" type="number" placeholder="Ingrese un valor" [(ngModel)]="vje.Costo"></ion-input>
       </ion-item>
     </ion-list>
   </div>
+
+  <!-- Botón para crear viaje -->
   <div class="ion-margin ion-text-center">
     <ion-button (click)="crearViaje()" [routerLink]="'/home'" id="open-toast" shape="round">
       Guardar!
     </ion-button>
     <ion-toast trigger="open-toast" message="Guardado!" [duration]="1000"></ion-toast>
+  </div>
+
+  <!-- Botón para acceder a la previsualización del viaje activo -->
+  <div class="ion-margin ion-text-center" *ngIf="viajeActivo">
+    <ion-button [routerLink]="['/viaje-preview', viajeActivo.id]" shape="round">
+      Ver viaje activo
+    </ion-button>
   </div>
 </ion-content>
