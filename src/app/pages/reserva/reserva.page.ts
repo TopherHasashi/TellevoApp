@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
+import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { ToastController } from '@ionic/angular';
+import { Reserva } from 'src/app/interfaces/iusuario';
 
 @Component({
   selector: 'app-reserva',
@@ -11,10 +13,21 @@ import { ToastController } from '@ionic/angular';
 export class ReservaPage implements OnInit {
   viajes: any[] = []; // Lista de viajes
   usuarioId: string = ''; // ID del usuario actual
+  nombre: string = '';
+  apellido: string = '';
+  rva: Reserva = {
+    idConductor: "",
+    idReserva: "",
+    idUsuario: "",
+    idViaje: "",
+    nombreUsuario: "",
+    apellidoUsuario: "",
+  }
 
   constructor(
     private afAuth: AngularFireAuth,
-    private db: AngularFireDatabase, // Cambiado a AngularFireDatabase
+    private db: AngularFireDatabase,
+    private firestore: AngularFirestore,
     private toastController: ToastController
   ) {}
 
@@ -23,6 +36,13 @@ export class ReservaPage implements OnInit {
       if (user) {
         this.usuarioId = user.uid; // Obtiene el ID del usuario actual
         this.cargarViajes(); // Carga los viajes en tiempo real
+        this.firestore.collection('usuarios').doc(user.uid).get().subscribe((doc) => {
+          if (doc.exists) {
+            const data: any = doc.data();
+            this.nombre = data.nombre || '';
+            this.apellido = data.apellido || '';
+          }
+        });
       }
     });
   }
@@ -32,7 +52,7 @@ export class ReservaPage implements OnInit {
     this.db.list('viajes').valueChanges().subscribe((viajes: any[]) => {
       // Filtra los viajes que no sean del usuario actual y que estén activos
       this.viajes = viajes.filter(
-        (viaje) => viaje.idUsuario !== this.usuarioId && viaje.estado === 'activo'
+        (viaje) => viaje.idUsuario !== this.usuarioId && viaje.estado === 'activo',
       );
       console.log('Viajes disponibles:', this.viajes);
     });
@@ -55,6 +75,7 @@ export class ReservaPage implements OnInit {
                 .then(() => {
                   console.log(`Reserva confirmada para el viaje a ${viaje.Destino}`);
                   this.mostrarToast('¡Reserva confirmada!', 'success');
+                  this.guardarReserva(viaje.id,viaje.idUsuario);
                 })
                 .catch((error) => {
                   console.error('Error al reservar el asiento:', error);
@@ -83,5 +104,35 @@ export class ReservaPage implements OnInit {
       position: 'bottom',
     });
     toast.present();
+  }
+  async guardarReserva(viaje: string,conductor: string) {
+    this.afAuth.currentUser.then(user => {
+      if (user) {
+        const reservaData = {
+          idConductor: conductor,
+          idUsuario: user.uid,
+          idViaje: viaje,
+          nombreUsuario: this.nombre,
+          apellidoUsuario: this.apellido
+        };
+  
+        const reservaRef = this.db.list('reservas'); // Referencia a la lista "reservas"
+  
+        // Usamos push() correctamente
+        reservaRef.push(reservaData).then((ref) => {
+          const idReserva = ref.key; // Obtenemos el ID de la reserva generada por Firebase
+          console.log('Reserva guardada en Realtime Database con ID:', idReserva);
+  
+          // Actualizamos el nodo con el ID para referencia futura
+          this.db.object(`reservas/${idReserva}`).update({ idReserva: idReserva }).then(() => {
+            console.log('ID de la reserva actualizado correctamente en Firebase.');
+          });
+        }).catch((error: any) => {
+          console.error('Error al guardar la reserva en Realtime Database:', error);
+        });
+      }
+    }).catch((error: any) => {
+      console.error('Error al autenticar usuario:', error);
+    });
   }
 }

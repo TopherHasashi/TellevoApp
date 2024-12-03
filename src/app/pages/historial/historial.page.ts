@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
+import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { Usuario } from 'src/app/interfaces/iusuario';
 
@@ -12,7 +13,11 @@ export class HistorialPage implements OnInit {
   reservas: any[] = []; // Lista de reservas
   usuario: Usuario | null = null; // Usuario autenticado
 
-  constructor(private afAuth: AngularFireAuth, private firestore: AngularFirestore) {}
+  constructor(
+    private afAuth: AngularFireAuth,
+    private firestore: AngularFirestore,
+    private db: AngularFireDatabase,
+  ) {}
 
   ngOnInit() {
     // Obtén el usuario autenticado
@@ -41,11 +46,7 @@ export class HistorialPage implements OnInit {
 
   loadReservas() {
     if (this.usuario) {
-      // Consulta Firestore para obtener las reservas relacionadas con los viajes creados por este conductor
-      this.firestore
-        .collection('reservas', (ref) =>
-          ref.where('idConductor', '==', this.usuario!.id) // 'idConductor' identifica los viajes creados por este conductor
-        )
+      this.db.list('reservas', (ref) => ref.orderByChild('idConductor').equalTo(this.usuario!.id))
         .valueChanges()
         .subscribe((data: any[]) => {
           this.reservas = data;
