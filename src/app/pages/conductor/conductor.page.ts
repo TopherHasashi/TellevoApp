@@ -1,21 +1,25 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { Vehiculo, Viajes } from 'src/app/interfaces/iusuario';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-conductor',
   templateUrl: './conductor.page.html',
   styleUrls: ['./conductor.page.scss'],
 })
-export class ConductorPage implements OnInit {
+export class ConductorPage implements OnInit, OnDestroy {
   nombre: string = '';
   apellido: string = '';
   vcl: Vehiculo = {
-    Marca: '', Patente: '', Anio: 2000, Modelo: '',
+    Marca: '',
+    Patente: '',
+    Anio: 2000,
+    Modelo: '',
     idVehiculo: ''
   };
   vje: Viajes = {
@@ -27,8 +31,9 @@ export class ConductorPage implements OnInit {
     idUsuario: ''
   };
   sugerencias: any[] = [];
-  token: string = 'pk.eyJ1IjoidG9waGVyaGFzYXNoaSIsImEiOiJjbTNndTdsMTgwOGd2MmtwemE1M3pnYnZrIn0.DdITolvIbnmKgJUAJjjLrw'; 
+  token: string = 'pk.eyJ1IjoidG9waGVyaGFzYXNoaSIsImEiOiJjbTNndTdsMTgwOGd2MmtwemE1M3pnYnZrIn0.DdITolvIbnmKgJUAJjjLrw';
   viajeActivo: any = null; // Almacena el viaje activo del conductor
+  private viajeSubscription: Subscription | null = null; // Control de suscripción
 
   constructor(
     private afAuth: AngularFireAuth,
@@ -53,16 +58,29 @@ export class ConductorPage implements OnInit {
           }
         });
 
-        this.db
-        .list('viajes', (ref) => ref.orderByChild('idUsuario').equalTo(user.uid))
-        .valueChanges()
-        .subscribe((viajes: any[]) => {
-          this.viajeActivo = viajes.find((viaje) => viaje.estado === 'activo');
-          console.log('Viaje Activo:', this.viajeActivo);
-        });
-    
+        // Cancelar suscripción previa si existe
+        if (this.viajeSubscription) {
+          this.viajeSubscription.unsubscribe();
+        }
+
+        // Verificar viajes activos
+        this.viajeSubscription = this.db
+          .list('viajes', (ref) => ref.orderByChild('idUsuario').equalTo(user.uid))
+          .valueChanges()
+          .subscribe((viajes: any[]) => {
+            this.viajeActivo = viajes.find((viaje) => viaje.estado === 'activo');
+            console.log('Viaje Activo:', this.viajeActivo);
+          });
       }
     });
+  }
+
+  ngOnDestroy() {
+    // Cancelar suscripción al destruir el componente
+    if (this.viajeSubscription) {
+      this.viajeSubscription.unsubscribe();
+      console.log('Suscripción a viajes cancelada.');
+    }
   }
 
   onSearchDestino(event: Event) {
@@ -86,17 +104,23 @@ export class ConductorPage implements OnInit {
   }
 
   crearViaje() {
-    this.afAuth.currentUser.then(user => {
+    this.afAuth.currentUser.then((user) => {
       if (user) {
+        // Cancelar suscripción previa si existe
+        if (this.viajeSubscription) {
+          this.viajeSubscription.unsubscribe();
+        }
+  
         // Verificar si ya existe un viaje activo
-        this.db
+        this.viajeSubscription = this.db
           .list('viajes', (ref) => ref.orderByChild('idUsuario').equalTo(user.uid))
           .valueChanges()
           .subscribe((viajes: any[]) => {
             const viajeActivo = viajes.find((viaje) => viaje.estado === 'activo');
-
+  
             if (viajeActivo) {
-              this.mostrarToast('Ya tienes un viaje activo. No puedes crear otro.', 'warning');
+                this.mostrarToast('Ya tienes un viaje activo. No puedes crear otro.', 'warning');
+                return;
             } else {
               // Crear el viaje si no hay uno activo
               const viajeData = {
@@ -109,25 +133,31 @@ export class ConductorPage implements OnInit {
                 nombreConductor: this.nombre,
                 apellidoConductor: this.apellido,
               };
-
+  
               const viajeRef = this.db.list('viajes');
               viajeRef.push(viajeData).then((ref) => {
                 const id = ref.key;
                 console.log('Viaje guardado con ID:', id);
-
+  
                 // Actualizamos el nodo con el ID
                 this.db.object(`viajes/${id}`).update({ id: id }).then(() => {
                   console.log('ID del viaje actualizado correctamente en Firebase.');
                   this.router.navigate(['/viaje-preview', id]);
                 });
               });
+  
+              // Cancelar la suscripción después de la creación del viaje
+              if (this.viajeSubscription) {
+                this.viajeSubscription.unsubscribe();
+                this.viajeSubscription = null;
+              }
             }
           });
       }
     }).catch((error: any) => {
       console.error('Error al autenticar usuario:', error);
     });
-  }
+  }  
 
   async mostrarToast(mensaje: string, color: string) {
     const toast = document.createElement('ion-toast');
