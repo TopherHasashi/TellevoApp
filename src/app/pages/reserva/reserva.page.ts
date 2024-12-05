@@ -48,17 +48,18 @@ export class ReservaPage implements OnInit {
   }
 
   cargarViajes() {
-    // Escucha los cambios en tiempo real de la colección "viajes"
     this.db.list('viajes').valueChanges().subscribe((viajes: any[]) => {
-      // Filtra los viajes que no sean del usuario actual y que estén activos
-      this.viajes = viajes.filter(
-        (viaje) => viaje.idUsuario !== this.usuarioId && viaje.estado === 'activo',
-      );
+      this.viajes = viajes;
       console.log('Viajes disponibles:', this.viajes);
     });
   }
 
   async reservarViaje(viaje: any) {
+    if (viaje.estado === 'iniciado') {
+      this.mostrarToast('El viaje ya ha comenzado y no se pueden realizar reservas.', 'warning');
+      return;
+    }
+
     if (viaje.Asientos > 0) {
       const toast = await this.toastController.create({
         message: `¿Reservar viaje a ${viaje.Destino}?`,
@@ -68,7 +69,6 @@ export class ReservaPage implements OnInit {
             text: 'Confirmar',
             handler: () => {
               const viajeRef = this.db.object(`viajes/${viaje.id}`); // Referencia al viaje en Firebase
-  
               // Actualizar el número de asientos disponibles
               viajeRef
                 .update({ Asientos: viaje.Asientos - 1 })

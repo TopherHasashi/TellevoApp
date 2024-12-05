@@ -25,7 +25,14 @@
       <p><strong>Asientos disponibles:</strong> {{ viaje.Asientos }}</p>
       <p><strong>Precio por asiento:</strong> ${{ viaje.Costo }}</p>
     </ion-card-content>
-    <ion-button expand="block" (click)="reservarViaje(viaje)">Reservar</ion-button>
+
+    <!-- Botón dinámico basado en el estado del viaje -->
+    <ion-button 
+      expand="block" 
+      [disabled]="viaje.estado === 'iniciado'" 
+      (click)="reservarViaje(viaje)">
+      {{ viaje.estado === 'iniciado' ? 'Viaje en Curso' : 'Reservar' }}
+    </ion-button>
   </ion-card>
 
   <!-- Mensaje cuando no hay viajes disponibles -->

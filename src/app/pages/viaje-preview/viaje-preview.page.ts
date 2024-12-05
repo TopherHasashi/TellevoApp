@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute , Router } from '@angular/router';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { AlertController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
@@ -10,13 +10,8 @@ import { Subscription } from 'rxjs';
   styleUrls: ['./viaje-preview.page.scss'],
 })
 export class ViajePreviewPage implements OnInit, OnDestroy {
-  viaje: any = {}; // Almacena los detalles del viaje
-  private viajeSubscription: Subscription | null = null; // Controlar la suscripción al viaje
-
-  iniciarRecorrido() {
-    // Método vacío para evitar errores
-    console.log('Método iniciarRecorrido llamado.');
-  }
+  viaje: any = {}; 
+  private viajeSubscription: Subscription | null = null; 
 
   constructor(
     private route: ActivatedRoute, // Manejo de rutas
@@ -47,6 +42,18 @@ export class ViajePreviewPage implements OnInit, OnDestroy {
     if (this.viajeSubscription) {
       this.viajeSubscription.unsubscribe();
       console.log('Suscripción a viaje cancelada.');
+    }
+  }
+
+  iniciarRecorrido() {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.db.object(`viajes/${id}`).update({ estado: 'iniciado' }).then(() => {
+        console.log('Viaje iniciado con éxito');
+        this.router.navigate(['/viajeencurso', id]); // Redirige a la nueva página
+      }).catch((error) => {
+        console.error('Error al iniciar el viaje:', error);
+      });
     }
   }
 

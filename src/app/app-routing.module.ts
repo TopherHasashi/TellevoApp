@@ -48,6 +48,11 @@ const routes: Routes = [
     path: 'viaje-preview/:id',
     loadChildren: () => import('./pages/viaje-preview/viaje-preview.module').then( m => m.ViajePreviewPageModule)
   },
+  {
+    path: 'viajeencurso/:id',
+    loadChildren: () => import('./pages/viajeencurso/viajeencurso.module').then( m => m.ViajeencursoPageModule)
+  },
+
 
 
 
