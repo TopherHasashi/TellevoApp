@@ -3,6 +3,7 @@ import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { ToastController } from '@ionic/angular';
+import { LocaldbService } from 'src/app/service/localdb.service';
 
 @Component({
   selector: 'app-reserva',
@@ -20,7 +21,8 @@ export class ReservaPage implements OnInit {
     private afAuth: AngularFireAuth,
     private db: AngularFireDatabase,
     private firestore: AngularFirestore,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private localdbService: LocaldbService
   ) {}
 
   ngOnInit() {
@@ -64,13 +66,29 @@ export class ReservaPage implements OnInit {
         }
       });
   }
-
+  async guardarReservaLocal(reservaData: any): Promise<void> {
+    try {
+      await this.localdbService.guardar(`reserva_${reservaData.idViaje}`, reservaData);
+      console.log('Reserva guardada localmente:', reservaData);
+    } catch (error) {
+      console.error('Error al guardar la reserva localmente:', error);
+    }
+  }
+  
   async reservarViaje(viaje: any) {
+    // Crear la reserva
+    const reservaData = {
+      idConductor: viaje.idUsuario,
+      idUsuario: this.usuarioId,
+      idViaje: viaje.id,
+      nombreUsuario: this.nombre,
+      apellidoUsuario: this.apellido,
+    };
     if (this.viajeReservado) {
       this.mostrarToast('Solo puedes reservar un viaje a la vez.', 'warning');
       return;
     }
-
+  
     if (viaje.Asientos > 0) {
       const toast = await this.toastController.create({
         message: `¿Reservar viaje a ${viaje.Destino}?`,
@@ -78,21 +96,16 @@ export class ReservaPage implements OnInit {
         buttons: [
           {
             text: 'Confirmar',
-            handler: () => {
+            
+            handler: async () => {
+              // Llamar al método para guardar la reserva localmente
+              await this.guardarReservaLocal(reservaData);
               const viajeRef = this.db.object(`viajes/${viaje.id}`);
-              viajeRef.update({ Asientos: viaje.Asientos - 1 }).then(() => {
+              viajeRef.update({ Asientos: viaje.Asientos - 1 }).then(async () => {
                 console.log(`Reserva confirmada para el viaje a ${viaje.Destino}`);
                 this.mostrarToast('¡Reserva confirmada!', 'success');
-
-                // Guardar la reserva
-                const reservaData = {
-                  idConductor: viaje.idUsuario,
-                  idUsuario: this.usuarioId,
-                  idViaje: viaje.id,
-                  nombreUsuario: this.nombre,
-                  apellidoUsuario: this.apellido,
-                };
-
+  
+                // Guardar la reserva en Firebase
                 this.db.list('reservas').push(reservaData).then((ref) => {
                   this.db.object(`reservas/${ref.key}`).update({ idReserva: ref.key });
                   this.cargarReservaActual(); // Actualizar la reserva actual
@@ -114,6 +127,7 @@ export class ReservaPage implements OnInit {
       this.mostrarToast('No hay asientos disponibles para este viaje.', 'warning');
     }
   }
+  
 
   async mostrarToast(mensaje: string, color: string) {
     const toast = await this.toastController.create({
@@ -126,16 +140,24 @@ export class ReservaPage implements OnInit {
   }
 
   async guardarReserva(viaje: string,conductor: string) {
+    const reservaData = {
+      idConductor: conductor,
+      idUsuario: this.usuarioId,
+      idViaje: viaje,
+      nombreUsuario: this.nombre,
+      apellidoUsuario: this.apellido
+    };
+
+    try {
+      // Guardar la reserva localmente antes de enviar a Firebase
+      await this.localdbService.guardar(`reserva_${viaje}`, reservaData);
+      console.log('Reserva guardada localmente:', reservaData);
+    } catch (error) {
+      console.error('Error al guardar la reserva localmente:', error);
+    }
+
     this.afAuth.currentUser.then(user => {
       if (user) {
-        const reservaData = {
-          idConductor: conductor,
-          idUsuario: user.uid,
-          idViaje: viaje,
-          nombreUsuario: this.nombre,
-          apellidoUsuario: this.apellido
-        };
-  
         const reservaRef = this.db.list('reservas'); // Referencia a la lista "reservas"
   
         // Usamos push() correctamente
