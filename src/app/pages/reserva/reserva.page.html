@@ -17,7 +17,9 @@
         <ion-avatar slot="start" style="margin-right: 10px;">
           <img src="../../../assets/icon/Honda Civic.PNG" alt="Vehículo">
         </ion-avatar>
-        <ion-card-title style="margin: 0;">{{ viaje.nombreConductor }} {{ viaje.apellidoConductor }}</ion-card-title>
+        <ion-card-title style="margin: 0;">
+          {{ viaje.nombreConductor }} {{ viaje.apellidoConductor }}
+        </ion-card-title>
       </div>
     </ion-card-header>
     <ion-card-content>
@@ -26,12 +28,12 @@
       <p><strong>Precio por asiento:</strong> ${{ viaje.Costo }}</p>
     </ion-card-content>
 
-    <!-- Botón dinámico basado en el estado del viaje -->
-    <ion-button 
-      expand="block" 
-      [disabled]="viaje.estado === 'iniciado'" 
+    <!-- Botón de reserva dinámico -->
+    <ion-button
+      expand="block"
+      [disabled]="viajeReservado || viaje.estado === 'iniciado' || viaje.Asientos === 0"
       (click)="reservarViaje(viaje)">
-      {{ viaje.estado === 'iniciado' ? 'Viaje en Curso' : 'Reservar' }}
+      {{ viajeReservado ? 'Ya tienes una reserva activa' : (viaje.estado === 'iniciado' ? 'Viaje en Curso' : 'Reservar') }}
     </ion-button>
   </ion-card>
 

@@ -3,7 +3,6 @@ import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { ToastController } from '@ionic/angular';
-import { Reserva } from 'src/app/interfaces/iusuario';
 
 @Component({
   selector: 'app-reserva',
@@ -15,14 +14,7 @@ export class ReservaPage implements OnInit {
   usuarioId: string = ''; // ID del usuario actual
   nombre: string = '';
   apellido: string = '';
-  rva: Reserva = {
-    idConductor: "",
-    idReserva: "",
-    idUsuario: "",
-    idViaje: "",
-    nombreUsuario: "",
-    apellidoUsuario: "",
-  }
+  viajeReservado: any = null; // Detalles del viaje reservado
 
   constructor(
     private afAuth: AngularFireAuth,
@@ -34,8 +26,9 @@ export class ReservaPage implements OnInit {
   ngOnInit() {
     this.afAuth.currentUser.then((user) => {
       if (user) {
-        this.usuarioId = user.uid; // Obtiene el ID del usuario actual
-        this.cargarViajes(); // Carga los viajes en tiempo real
+        this.usuarioId = user.uid;
+        this.cargarViajes();
+        this.cargarReservaActual(); // Cargar información de la reserva actual
         this.firestore.collection('usuarios').doc(user.uid).get().subscribe((doc) => {
           if (doc.exists) {
             const data: any = doc.data();
@@ -56,9 +49,25 @@ export class ReservaPage implements OnInit {
     });
   }
 
+  cargarReservaActual() {
+    // Busca si el usuario ya reservó un viaje
+    this.db.list('reservas', (ref) =>
+      ref.orderByChild('idUsuario').equalTo(this.usuarioId)
+    )
+      .valueChanges()
+      .subscribe((reservas: any[]) => {
+        if (reservas.length > 0) {
+          this.viajeReservado = reservas[0]; // Se asume que solo puede haber una reserva activa
+          console.log('Reserva actual:', this.viajeReservado);
+        } else {
+          this.viajeReservado = null;
+        }
+      });
+  }
+
   async reservarViaje(viaje: any) {
-    if (viaje.estado === 'iniciado') {
-      this.mostrarToast('El viaje ya ha comenzado y no se pueden realizar reservas.', 'warning');
+    if (this.viajeReservado) {
+      this.mostrarToast('Solo puedes reservar un viaje a la vez.', 'warning');
       return;
     }
 
@@ -70,19 +79,28 @@ export class ReservaPage implements OnInit {
           {
             text: 'Confirmar',
             handler: () => {
-              const viajeRef = this.db.object(`viajes/${viaje.id}`); // Referencia al viaje en Firebase
-              // Actualizar el número de asientos disponibles
-              viajeRef
-                .update({ Asientos: viaje.Asientos - 1 })
-                .then(() => {
-                  console.log(`Reserva confirmada para el viaje a ${viaje.Destino}`);
-                  this.mostrarToast('¡Reserva confirmada!', 'success');
-                  this.guardarReserva(viaje.id,viaje.idUsuario);
-                })
-                .catch((error) => {
-                  console.error('Error al reservar el asiento:', error);
-                  this.mostrarToast('No se pudo reservar el asiento.', 'danger');
+              const viajeRef = this.db.object(`viajes/${viaje.id}`);
+              viajeRef.update({ Asientos: viaje.Asientos - 1 }).then(() => {
+                console.log(`Reserva confirmada para el viaje a ${viaje.Destino}`);
+                this.mostrarToast('¡Reserva confirmada!', 'success');
+
+                // Guardar la reserva
+                const reservaData = {
+                  idConductor: viaje.idUsuario,
+                  idUsuario: this.usuarioId,
+                  idViaje: viaje.id,
+                  nombreUsuario: this.nombre,
+                  apellidoUsuario: this.apellido,
+                };
+
+                this.db.list('reservas').push(reservaData).then((ref) => {
+                  this.db.object(`reservas/${ref.key}`).update({ idReserva: ref.key });
+                  this.cargarReservaActual(); // Actualizar la reserva actual
                 });
+              }).catch((error) => {
+                console.error('Error al reservar el asiento:', error);
+                this.mostrarToast('No se pudo reservar el asiento.', 'danger');
+              });
             },
           },
           {
@@ -93,10 +111,9 @@ export class ReservaPage implements OnInit {
       });
       toast.present();
     } else {
-      // Mostrar mensaje si no hay asientos disponibles
       this.mostrarToast('No hay asientos disponibles para este viaje.', 'warning');
     }
-  }  
+  }
 
   async mostrarToast(mensaje: string, color: string) {
     const toast = await this.toastController.create({
@@ -107,6 +124,7 @@ export class ReservaPage implements OnInit {
     });
     toast.present();
   }
+
   async guardarReserva(viaje: string,conductor: string) {
     this.afAuth.currentUser.then(user => {
       if (user) {
