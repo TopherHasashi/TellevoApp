@@ -17,21 +17,19 @@
     <ion-card *ngIf="tieneAuto">
       <ion-card-header>
         <ion-card-title>Conductor</ion-card-title>
-        <ion-card-subtitle>Agrega acompañantes a tu viaje!</ion-card-subtitle>
+        <ion-card-subtitle>Administra tus viajes</ion-card-subtitle>
       </ion-card-header>
 
       <ion-card-content>
-        En este perfil compartiras los asientos disponibles de tu vehiculo manteniendo tu destino.
+        En este perfil puedes gestionar tus viajes como conductor.
       </ion-card-content>
 
-      <!-- Mostrar botón dinámico según el estado del viaje -->
       <div class="ion-text-end" *ngIf="viajeActivo">
         <ion-button (click)="navegarAViaje()">
           {{ viajeActivo.estado === 'activo' ? 'Ver viaje activo' : 'Ver viaje en curso' }}
         </ion-button>
       </div>
 
-      <!-- Mostrar botón para crear viaje si no hay viaje activo -->
       <div class="ion-text-end" *ngIf="!viajeActivo">
         <ion-button [routerLink]="['/conductor']">Crear viaje</ion-button>
       </div>
@@ -41,15 +39,17 @@
     <ion-card>
       <ion-card-header>
         <ion-card-title>Pasajero</ion-card-title>
-        <ion-card-subtitle>Elige un conductor!</ion-card-subtitle>
+        <ion-card-subtitle>Reserva un viaje</ion-card-subtitle>
       </ion-card-header>
 
       <ion-card-content>
-        En este perfil podrás reservar un asiento disponible para llegar a tu destino.
+        En este perfil puedes reservar un asiento disponible para llegar a tu destino.
       </ion-card-content>
 
+      <!-- Botón dinámico -->
       <div class="ion-text-end">
-        <ion-button [routerLink]="['/reserva']">Ser pasajero</ion-button>
+        <ion-button *ngIf="!reservaActiva" [routerLink]="['/reserva']">Ser pasajero</ion-button>
+        <ion-button *ngIf="reservaActiva" (click)="navegarAReserva()">Ver reserva activa</ion-button>
       </div>
     </ion-card>
   </div>

@@ -58,9 +58,10 @@ export class ReservaPage implements OnInit {
     )
       .valueChanges()
       .subscribe((reservas: any[]) => {
-        if (reservas.length > 0) {
-          this.viajeReservado = reservas[0]; // Se asume que solo puede haber una reserva activa
-          console.log('Reserva actual:', this.viajeReservado);
+        const reservasActivas = reservas.filter(reserva => reserva.estado === 'activo');
+        if (reservasActivas.length > 0) {
+          this.viajeReservado = reservasActivas[0]; // Se asume una sola reserva activa
+          console.log('Reserva activa actual:', this.viajeReservado);
         } else {
           this.viajeReservado = null;
         }
@@ -76,43 +77,39 @@ export class ReservaPage implements OnInit {
   }
   
   async reservarViaje(viaje: any) {
-    // Crear la reserva
-    const reservaData = {
-      idConductor: viaje.idUsuario,
-      idUsuario: this.usuarioId,
-      idViaje: viaje.id,
-      nombreUsuario: this.nombre,
-      apellidoUsuario: this.apellido,
-    };
     if (this.viajeReservado) {
       this.mostrarToast('Solo puedes reservar un viaje a la vez.', 'warning');
       return;
     }
   
     if (viaje.Asientos > 0) {
+      const reservaData = {
+        idConductor: viaje.idUsuario,
+        idUsuario: this.usuarioId,
+        idViaje: viaje.id,
+        nombreUsuario: this.nombre,
+        apellidoUsuario: this.apellido,
+        estado: 'activo', // Se asegura de que el estado sea "activo"
+      };
+  
       const toast = await this.toastController.create({
         message: `¿Reservar viaje a ${viaje.Destino}?`,
         position: 'bottom',
         buttons: [
           {
             text: 'Confirmar',
-            
             handler: async () => {
-              // Llamar al método para guardar la reserva localmente
-              await this.guardarReservaLocal(reservaData);
               const viajeRef = this.db.object(`viajes/${viaje.id}`);
-              viajeRef.update({ Asientos: viaje.Asientos - 1 }).then(async () => {
+              // Actualizar los asientos disponibles
+              viajeRef.update({ Asientos: viaje.Asientos - 1 }).then(() => {
                 console.log(`Reserva confirmada para el viaje a ${viaje.Destino}`);
                 this.mostrarToast('¡Reserva confirmada!', 'success');
-  
-                // Guardar la reserva en Firebase
+                // Guardar la reserva en la base de datos
                 this.db.list('reservas').push(reservaData).then((ref) => {
-                  this.db.object(`reservas/${ref.key}`).update({ idReserva: ref.key });
-                  this.cargarReservaActual(); // Actualizar la reserva actual
+                  const reservaId = ref.key;
+                  this.db.object(`reservas/${reservaId}`).update({ idReserva: reservaId });
+                  this.cargarReservaActual(); // Actualizar la reserva activa
                 });
-              }).catch((error) => {
-                console.error('Error al reservar el asiento:', error);
-                this.mostrarToast('No se pudo reservar el asiento.', 'danger');
               });
             },
           },
