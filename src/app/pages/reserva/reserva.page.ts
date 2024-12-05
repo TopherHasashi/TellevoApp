@@ -4,7 +4,6 @@ import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { ToastController } from '@ionic/angular';
 import { Reserva } from 'src/app/interfaces/iusuario';
-import { LocaldbService } from 'src/app/service/localdb.service';
 
 @Component({
   selector: 'app-reserva',
@@ -29,8 +28,7 @@ export class ReservaPage implements OnInit {
     private afAuth: AngularFireAuth,
     private db: AngularFireDatabase,
     private firestore: AngularFirestore,
-    private toastController: ToastController,
-    private localdbService: LocaldbService
+    private toastController: ToastController
   ) {}
 
   ngOnInit() {
@@ -51,9 +49,7 @@ export class ReservaPage implements OnInit {
 
   cargarViajes() {
     this.db.list('viajes').valueChanges().subscribe((viajes: any[]) => {
-      this.viajes = viajes.filter(
-        (viaje) => viaje.estado !== 'finalizado'
-      );
+      this.viajes = viajes;
       console.log('Viajes disponibles:', this.viajes);
     });
   }
@@ -79,7 +75,7 @@ export class ReservaPage implements OnInit {
                 .then(() => {
                   console.log(`Reserva confirmada para el viaje a ${viaje.Destino}`);
                   this.mostrarToast('¡Reserva confirmada!', 'success');
-                  this.guardarReserva(viaje.id, viaje.idUsuario);
+                  this.guardarReserva(viaje.id,viaje.idUsuario);
                 })
                 .catch((error) => {
                   console.error('Error al reservar el asiento:', error);
@@ -98,7 +94,7 @@ export class ReservaPage implements OnInit {
       // Mostrar mensaje si no hay asientos disponibles
       this.mostrarToast('No hay asientos disponibles para este viaje.', 'warning');
     }
-  }
+  }  
 
   async mostrarToast(mensaje: string, color: string) {
     const toast = await this.toastController.create({
@@ -109,33 +105,24 @@ export class ReservaPage implements OnInit {
     });
     toast.present();
   }
-
-  async guardarReserva(viaje: string, conductor: string) {
-    const reservaData = {
-      idConductor: conductor,
-      idUsuario: this.usuarioId,
-      idViaje: viaje,
-      nombreUsuario: this.nombre,
-      apellidoUsuario: this.apellido
-    };
-
-    try {
-      // Guardar la reserva localmente antes de enviar a Firebase
-      await this.localdbService.guardar(`reserva_${viaje}`, reservaData);
-      console.log('Reserva guardada localmente:', reservaData);
-    } catch (error) {
-      console.error('Error al guardar la reserva localmente:', error);
-    }
-
+  async guardarReserva(viaje: string,conductor: string) {
     this.afAuth.currentUser.then(user => {
       if (user) {
+        const reservaData = {
+          idConductor: conductor,
+          idUsuario: user.uid,
+          idViaje: viaje,
+          nombreUsuario: this.nombre,
+          apellidoUsuario: this.apellido
+        };
+  
         const reservaRef = this.db.list('reservas'); // Referencia a la lista "reservas"
-
+  
         // Usamos push() correctamente
         reservaRef.push(reservaData).then((ref) => {
           const idReserva = ref.key; // Obtenemos el ID de la reserva generada por Firebase
           console.log('Reserva guardada en Realtime Database con ID:', idReserva);
-
+  
           // Actualizamos el nodo con el ID para referencia futura
           this.db.object(`reservas/${idReserva}`).update({ idReserva: idReserva }).then(() => {
             console.log('ID de la reserva actualizado correctamente en Firebase.');
