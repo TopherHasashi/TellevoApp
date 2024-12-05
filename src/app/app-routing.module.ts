@@ -52,6 +52,11 @@ const routes: Routes = [
     path: 'viajeencurso/:id',
     loadChildren: () => import('./pages/viajeencurso/viajeencurso.module').then( m => m.ViajeencursoPageModule)
   },
+  {
+    path: 'espera/:id',
+    loadChildren: () => import('./pages/espera/espera.module').then( m => m.EsperaPageModule)
+  },
+
 
 
 

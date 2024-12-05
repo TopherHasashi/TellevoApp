@@ -14,6 +14,7 @@ export class HomePage implements OnInit {
   apellido: string = '';
   tieneAuto: boolean = false;
   viajeActivo: any = null;
+  reservaActiva: any = null;
 
   constructor(
     private navCtrl: NavController,
@@ -24,26 +25,42 @@ export class HomePage implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.afAuth.currentUser.then(user => {
+    this.afAuth.currentUser.then((user) => {
       if (user) {
-        this.firestore.collection('usuarios').doc(user.uid).get().subscribe((doc) => {
-          if (doc.exists) {
-            const data: any = doc.data();
-            console.log('Datos obtenidos:', data);
-            this.nombre = data.nombre || '';
-            this.apellido = data.apellido || '';
-            this.tieneAuto = data.Vehiculo !== null;
-            this.presentWelcomeToast();
-          }
-        });
+        this.firestore
+          .collection('usuarios')
+          .doc(user.uid)
+          .get()
+          .subscribe((doc) => {
+            if (doc.exists) {
+              const data: any = doc.data();
+              console.log('Datos obtenidos:', data);
+              this.nombre = data.nombre || '';
+              this.apellido = data.apellido || '';
+              this.tieneAuto = data.Vehiculo !== null;
+              this.presentWelcomeToast();
+            }
+          });
 
         this.db
-          .list('viajes', (ref) => ref.orderByChild('idUsuario').equalTo(user.uid))
+          .list('viajes', (ref) =>
+            ref.orderByChild('idUsuario').equalTo(user.uid)
+          )
           .valueChanges()
           .subscribe((viajes: any[]) => {
             this.viajeActivo = viajes.find(
               (viaje) => viaje.estado === 'activo' || viaje.estado === 'iniciado'
             );
+          });
+
+        this.db
+          .list('reservas', (ref) =>
+            ref.orderByChild('idUsuario').equalTo(user.uid)
+          )
+          .valueChanges()
+          .subscribe((reservas: any[]) => {
+            const activa = reservas.find((reserva) => reserva.estado === 'activo');
+            this.reservaActiva = activa || null;
           });
       }
     });
@@ -68,6 +85,12 @@ export class HomePage implements OnInit {
       this.navCtrl.navigateForward(`/viaje-preview/${this.viajeActivo.id}`);
     } else if (this.viajeActivo.estado === 'iniciado') {
       this.navCtrl.navigateForward(`/viajeencurso/${this.viajeActivo.id}`);
+    }
+  }
+
+  navegarAReserva() {
+    if (this.reservaActiva) {
+      this.navCtrl.navigateForward(`/espera/${this.reservaActiva.idReserva}`);
     }
   }
 }

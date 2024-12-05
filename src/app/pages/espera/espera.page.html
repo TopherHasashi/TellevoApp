@@ -1,0 +1,20 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Reserva Activa</ion-title>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Esperando al Conductor</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <p><strong>Destino:</strong> {{ reserva.Destino }}</p>
+      <p><strong>Estado:</strong> {{ reserva.estado }}</p>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

@@ -49,7 +49,8 @@
       </ion-card-content>
 
       <div class="ion-text-end">
-        <ion-button [routerLink]="['/reserva']">Ser pasajero</ion-button>
+        <ion-button *ngIf="!reservaActiva" [routerLink]="['/reserva']">Ser pasajero</ion-button>
+        <ion-button *ngIf="reservaActiva" (click)="navegarAReserva()">Ver Reserva Activa</ion-button>
       </div>
     </ion-card>
   </div>

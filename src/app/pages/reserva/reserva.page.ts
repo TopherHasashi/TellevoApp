@@ -56,9 +56,10 @@ export class ReservaPage implements OnInit {
     )
       .valueChanges()
       .subscribe((reservas: any[]) => {
-        if (reservas.length > 0) {
-          this.viajeReservado = reservas[0]; // Se asume que solo puede haber una reserva activa
-          console.log('Reserva actual:', this.viajeReservado);
+        const reservasActivas = reservas.filter(reserva => reserva.estado === 'activo');
+        if (reservasActivas.length > 0) {
+          this.viajeReservado = reservasActivas[0]; // Se asume una sola reserva activa
+          console.log('Reserva activa actual:', this.viajeReservado);
         } else {
           this.viajeReservado = null;
         }
@@ -91,6 +92,7 @@ export class ReservaPage implements OnInit {
                   idViaje: viaje.id,
                   nombreUsuario: this.nombre,
                   apellidoUsuario: this.apellido,
+                  estado: 'activo',
                 };
 
                 this.db.list('reservas').push(reservaData).then((ref) => {
