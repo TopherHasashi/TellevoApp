@@ -84,15 +84,31 @@ export class ViajePreviewPage implements OnInit, OnDestroy {
   cancelarViaje() {
     const id = this.viaje.id; // Obtener el ID del viaje
     if (id) {
-      // Eliminar el viaje de la base de datos
-      this.db.object(`viajes/${id}`).remove().then(() => {
-        console.log('Viaje eliminado correctamente.');
-        this.router.navigate(['/conductor']); // Redirigir al conductor a su página principal
-      }).catch((error) => {
-        console.error('Error al eliminar el viaje:', error);
-      });
+      // Cambiar el estado de las reservas asociadas a "cancelado"
+      this.db.list('reservas', (ref) => ref.orderByChild('idViaje').equalTo(id))
+        .snapshotChanges()
+        .subscribe((snapshots) => {
+          snapshots.forEach((snapshot) => {
+            const reservaKey = snapshot.key; // ID de la reserva
+            if (reservaKey) {
+              this.db.object(`reservas/${reservaKey}`).update({ estado: 'cancelado' }).then(() => {
+                console.log(`Reserva ${reservaKey} asociada al viaje ${id} cancelada.`);
+              }).catch((error) => {
+                console.error(`Error al cancelar la reserva ${reservaKey}:`, error);
+              });
+            }
+          });
+  
+          // Eliminar el viaje de la base de datos
+          this.db.object(`viajes/${id}`).remove().then(() => {
+            console.log('Viaje eliminado correctamente.');
+            this.router.navigate(['/conductor']); // Redirigir al conductor a su página principal
+          }).catch((error) => {
+            console.error('Error al eliminar el viaje:', error);
+          });
+        });
     } else {
       console.error('ID del viaje no encontrado. No se puede eliminar.');
     }
   }
-}
+}  

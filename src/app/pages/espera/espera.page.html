@@ -13,7 +13,7 @@
       <ion-card-title>Esperando al Conductor</ion-card-title>
     </ion-card-header>
     <ion-card-content>
-      <p><strong>Destino:</strong> {{ reserva.Destino }}</p>
+      <p><strong>Destino:</strong> {{ destino }}</p>
       <p><strong>Estado:</strong> {{ reserva.estado }}</p>
     </ion-card-content>
   </ion-card>
@@ -21,4 +21,8 @@
   <div class="ion-text-center" *ngIf="!reserva">
     <p>No hay datos de la reserva en este momento.</p>
   </div>
+
+  <ion-footer *ngIf="reserva">
+    <ion-button expand="block" color="danger" (click)="cancelarReserva()">Cancelar Reserva</ion-button>
+  </ion-footer>
 </ion-content>

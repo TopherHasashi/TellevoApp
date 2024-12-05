@@ -29,12 +29,31 @@ export class ViajeencursoPage implements OnInit {
 
   finalizarViaje() {
     if (this.idViaje) {
+      // Cambiar el estado del viaje a "finalizado"
       this.db.object(`viajes/${this.idViaje}`).update({ estado: 'finalizado' }).then(() => {
         console.log('Viaje finalizado correctamente');
-        this.router.navigate(['/home']); // Redirigir al home
+  
+        // Actualizar el estado de las reservas asociadas a este viaje
+        this.db.list('reservas', (ref) => ref.orderByChild('idViaje').equalTo(this.idViaje))
+          .snapshotChanges()
+          .subscribe((snapshots) => {
+            snapshots.forEach((snapshot) => {
+              const reservaKey = snapshot.key; // ID de la reserva
+              if (reservaKey) {
+                this.db.object(`reservas/${reservaKey}`).update({ estado: 'finalizado' }).then(() => {
+                  console.log(`Reserva ${reservaKey} asociada al viaje ${this.idViaje} finalizada.`);
+                }).catch((error) => {
+                  console.error(`Error al finalizar la reserva ${reservaKey}:`, error);
+                });
+              }
+            });
+  
+            // Redirigir al home después de actualizar reservas
+            this.router.navigate(['/home']);
+          });
       }).catch((error) => {
         console.error('Error al finalizar el viaje:', error);
       });
     }
   }
-}
+}  
