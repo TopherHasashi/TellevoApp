@@ -46,7 +46,7 @@
   </div>
 
   <!-- Botón para crear viaje -->
-  <div class="ion-margin ion-text-center">
+  <div class="ion-margin ion-text-center" *ngIf="!viajeActivo">
     <ion-button (click)="crearViaje()" [routerLink]="'/home'" id="open-toast" shape="round">
       Guardar!
     </ion-button>

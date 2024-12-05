@@ -2,9 +2,7 @@
   <ion-toolbar>
     <ion-title>TeLlevoAPP</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="logout()">
-        Logout
-      </ion-button>
+      <ion-button (click)="logout()">Logout</ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
@@ -13,7 +11,7 @@
   <div class="ion-text-center">
     <h2>Bienvenido {{ nombre }} {{ apellido }}!</h2>
   </div>
-  
+
   <div>
     <!-- Mostrar solo si el usuario tiene auto -->
     <ion-card *ngIf="tieneAuto">
@@ -21,17 +19,21 @@
         <ion-card-title>Conductor</ion-card-title>
         <ion-card-subtitle>Agrega acompañantes a tu viaje!</ion-card-subtitle>
       </ion-card-header>
-    
+
       <ion-card-content>
         En este perfil compartiras los asientos disponibles de tu vehiculo manteniendo tu destino.
       </ion-card-content>
-    
-      <div class="ion-text-end">
-        <ion-button [routerLink]="['/conductor']">Crear viaje</ion-button>
+
+      <!-- Mostrar botón dinámico según el estado del viaje -->
+      <div class="ion-text-end" *ngIf="viajeActivo">
+        <ion-button (click)="navegarAViaje()">
+          {{ viajeActivo.estado === 'activo' ? 'Ver viaje activo' : 'Ver viaje en curso' }}
+        </ion-button>
       </div>
-      <br>
-      <div class="ion-text-end">
-        <ion-button [routerLink]="['/historial']" >Pasajeros del viaje</ion-button>
+
+      <!-- Mostrar botón para crear viaje si no hay viaje activo -->
+      <div class="ion-text-end" *ngIf="!viajeActivo">
+        <ion-button [routerLink]="['/conductor']">Crear viaje</ion-button>
       </div>
     </ion-card>
 
@@ -39,17 +41,16 @@
     <ion-card>
       <ion-card-header>
         <ion-card-title>Pasajero</ion-card-title>
-        <ion-card-subtitle>Elige un conductor! </ion-card-subtitle>
+        <ion-card-subtitle>Elige un conductor!</ion-card-subtitle>
       </ion-card-header>
-    
+
       <ion-card-content>
         En este perfil podrás reservar un asiento disponible para llegar a tu destino.
       </ion-card-content>
-    
+
       <div class="ion-text-end">
-        <ion-button [routerLink]="['/reserva']" >Ser pasajero</ion-button>
+        <ion-button [routerLink]="['/reserva']">Ser pasajero</ion-button>
       </div>
     </ion-card>
   </div>
 </ion-content>
-

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { NavController, ToastController } from '@ionic/angular';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
+import { AngularFireDatabase } from '@angular/fire/compat/database';
 
 @Component({
   selector: 'app-home',
@@ -12,12 +13,14 @@ export class HomePage implements OnInit {
   nombre: string = '';
   apellido: string = '';
   tieneAuto: boolean = false;
+  viajeActivo: any = null;
 
   constructor(
     private navCtrl: NavController,
     private firestore: AngularFirestore,
     private afAuth: AngularFireAuth,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private db: AngularFireDatabase
   ) {}
 
   ngOnInit() {
@@ -26,13 +29,22 @@ export class HomePage implements OnInit {
         this.firestore.collection('usuarios').doc(user.uid).get().subscribe((doc) => {
           if (doc.exists) {
             const data: any = doc.data();
-            console.log('Datos obtenidos:', data); // Verifica los datos en la consola
+            console.log('Datos obtenidos:', data);
             this.nombre = data.nombre || '';
             this.apellido = data.apellido || '';
-            this.tieneAuto = data.Vehiculo !== null; // Verifica si el usuario tiene un vehículo registrado
+            this.tieneAuto = data.Vehiculo !== null;
             this.presentWelcomeToast();
           }
         });
+
+        this.db
+          .list('viajes', (ref) => ref.orderByChild('idUsuario').equalTo(user.uid))
+          .valueChanges()
+          .subscribe((viajes: any[]) => {
+            this.viajeActivo = viajes.find(
+              (viaje) => viaje.estado === 'activo' || viaje.estado === 'iniciado'
+            );
+          });
       }
     });
   }
@@ -41,7 +53,7 @@ export class HomePage implements OnInit {
     const toast = await this.toastController.create({
       message: `Bienvenido ${this.nombre || 'Usuario'} ${this.apellido || ''}`,
       duration: 2000,
-      position: 'top'
+      position: 'top',
     });
     await toast.present();
   }
@@ -49,5 +61,13 @@ export class HomePage implements OnInit {
   logout() {
     localStorage.removeItem('user');
     this.navCtrl.navigateRoot('/login');
+  }
+
+  navegarAViaje() {
+    if (this.viajeActivo.estado === 'activo') {
+      this.navCtrl.navigateForward(`/viaje-preview/${this.viajeActivo.id}`);
+    } else if (this.viajeActivo.estado === 'iniciado') {
+      this.navCtrl.navigateForward(`/viajeencurso/${this.viajeActivo.id}`);
+    }
   }
 }

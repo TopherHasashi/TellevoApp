@@ -49,7 +49,9 @@ export class ReservaPage implements OnInit {
 
   cargarViajes() {
     this.db.list('viajes').valueChanges().subscribe((viajes: any[]) => {
-      this.viajes = viajes;
+      this.viajes = viajes.filter(
+        (viaje) => viaje.estado !== 'finalizado'
+      );
       console.log('Viajes disponibles:', this.viajes);
     });
   }

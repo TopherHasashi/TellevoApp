@@ -8,6 +8,20 @@
 </ion-header>
 
 <ion-content>
-  <h2 class="ion-text-center">El viaje ha comenzado</h2>
-  <p class="ion-text-center">Estamos configurando esta página.</p>
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Detalles del Viaje</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <p><strong>Destino:</strong> {{ viaje.Destino }}</p>
+      <p><strong>Asientos Disponibles:</strong> {{ viaje.Asientos }}</p>
+      <p><strong>Estado:</strong> {{ viaje.estado }}</p>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Botón para finalizar el viaje -->
+  <ion-button expand="block" color="danger" (click)="finalizarViaje()">
+    Finalizar Recorrido
+  </ion-button>
 </ion-content>
+

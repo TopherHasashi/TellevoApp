@@ -116,7 +116,7 @@ export class ConductorPage implements OnInit, OnDestroy {
           .list('viajes', (ref) => ref.orderByChild('idUsuario').equalTo(user.uid))
           .valueChanges()
           .subscribe((viajes: any[]) => {
-            const viajeActivo = viajes.find((viaje) => viaje.estado === 'activo');
+            const viajeActivo = viajes.find((viaje) => viaje.estado === 'activo' || viaje.estado === 'iniciado');
   
             if (viajeActivo) {
                 this.mostrarToast('Ya tienes un viaje activo. No puedes crear otro.', 'warning');
