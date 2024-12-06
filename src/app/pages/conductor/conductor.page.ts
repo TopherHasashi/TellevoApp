@@ -6,6 +6,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { Subscription } from 'rxjs';
+import { LocaldbService } from 'src/app/service/localdb.service';
 
 @Component({
   selector: 'app-conductor',
@@ -13,6 +14,7 @@ import { Subscription } from 'rxjs';
   styleUrls: ['./conductor.page.scss'],
 })
 export class ConductorPage implements OnInit, OnDestroy {
+  usuarioId: string = '';
   nombre: string = '';
   apellido: string = '';
   vcl: Vehiculo = {
@@ -27,7 +29,6 @@ export class ConductorPage implements OnInit, OnDestroy {
     Destino: '',
     Asientos: 4,
     Costo: 1000,
-    idVehiculo: '',
     idUsuario: ''
   };
   sugerencias: any[] = [];
@@ -40,12 +41,14 @@ export class ConductorPage implements OnInit, OnDestroy {
     private firestore: AngularFirestore,
     private http: HttpClient,
     private db: AngularFireDatabase,
-    private router: Router
+    private router: Router,
+    private localdbService: LocaldbService
   ) {}
 
   ngOnInit() {
     this.afAuth.currentUser.then(user => {
       if (user) {
+        this.usuarioId = user.uid;
         this.firestore.collection('usuarios').doc(user.uid).get().subscribe((doc) => {
           if (doc.exists) {
             const data: any = doc.data();
@@ -102,8 +105,25 @@ export class ConductorPage implements OnInit, OnDestroy {
     this.sugerencias = [];
     console.log('Destino seleccionado:', this.vje.Destino);
   }
-
+  async guardarViajeLocal(viajeData: any): Promise<void> {
+    try {
+      this.localdbService.guardar(`reserva_${viajeData.idViaje}`, viajeData);
+      console.log('Viaje guardado localmente:', viajeData);
+    } catch (error) {
+      console.error('Error al guardar el viaje localmente:', error);
+    }
+  }
   crearViaje() {
+    const viajeData = {
+      idUsuario: this.usuarioId,
+      Destino: this.vje.Destino,
+      Asientos: this.vje.Asientos,
+      Costo: this.vje.Costo,
+      estado: 'activo',
+      nombreConductor: this.nombre,
+      apellidoConductor: this.apellido,
+    };
+    this.guardarViajeLocal(viajeData);
     this.afAuth.currentUser.then((user) => {
       if (user) {
         // Cancelar suscripción previa si existe
@@ -122,18 +142,6 @@ export class ConductorPage implements OnInit, OnDestroy {
                 this.mostrarToast('Ya tienes un viaje activo. No puedes crear otro.', 'warning');
                 return;
             } else {
-              // Crear el viaje si no hay uno activo
-              const viajeData = {
-                idUsuario: user.uid,
-                Destino: this.vje.Destino,
-                Asientos: this.vje.Asientos,
-                Costo: this.vje.Costo,
-                estado: 'activo',
-                idVehiculo: this.vje.idVehiculo,
-                nombreConductor: this.nombre,
-                apellidoConductor: this.apellido,
-              };
-  
               const viajeRef = this.db.list('viajes');
               viajeRef.push(viajeData).then((ref) => {
                 const id = ref.key;

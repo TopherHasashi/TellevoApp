@@ -20,7 +20,6 @@ export interface Usuario {
     Destino: string;
     Asientos: number;
     Costo: number;
-    idVehiculo: string;  // Agregamos el ID del vehículo asociado al viaje
     idUsuario: string;  // ID del usuario que creó el viaje
   }
   
