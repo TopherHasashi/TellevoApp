@@ -4,6 +4,9 @@
 
 export const environment = {
   production: true,
+  mapbox: {
+    accessToken: 'pk.eyJ1IjoidG9waGVyaGFzYXNoaSIsImEiOiJjbTNndTdsMTgwOGd2MmtwemE1M3pnYnZrIn0.DdITolvIbnmKgJUAJjjLrw',
+  },
   firebaseConfig: {
     apiKey: "AIzaSyAXLG5Ai3ktQ_jxhD1lpNR0TREmhWhYMFc",
     authDomain: "tellevoapp-e8217.firebaseapp.com",
