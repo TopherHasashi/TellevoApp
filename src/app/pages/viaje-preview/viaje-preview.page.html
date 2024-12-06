@@ -16,10 +16,12 @@
       <p><strong>Destino:</strong> {{ viaje.Destino }}</p>
       <p><strong>Asientos Disponibles:</strong> {{ viaje.Asientos }}</p>
       <p><strong>Costo por Asiento:</strong> ${{ viaje.Costo }}</p>
+      <br>
+      <p>Lista de pasajeros:</p>
       <ion-list>
         <ion-item *ngFor="let reserva of reservas">
           <ion-label>
-            <h5>Lista pasajeros</h5>
+            
             <p>{{ reserva.nombreUsuario }} {{ reserva.apellidoUsuario }}</p>
           </ion-label>
         </ion-item>
