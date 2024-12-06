@@ -18,15 +18,16 @@
       <p><strong>Estado:</strong> {{ viaje.estado }}</p>
     </ion-card-content>
   </ion-card>
-
+  <div>
+    <!-- Botón para finalizar el viaje -->
+    <ion-button expand="block" color="secondary" (click)="finalizarViaje()">
+      Finalizar Recorrido
+    </ion-button>
+  </div>
   <div class="ion-margin">
-  <div id="map-container" style="height: 400px;">
-    <div id="map"></div>
+    <div id="map-container" style="height: 400px;">
+      <div id="map"></div>
+    </div>
   </div>
-  </div>
-  <!-- Botón para finalizar el viaje -->
-  <ion-button expand="block" color="secondary" (click)="finalizarViaje()">
-    Finalizar Recorrido
-  </ion-button>
-</ion-content>
 
+</ion-content>

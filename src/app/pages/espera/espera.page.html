@@ -8,6 +8,9 @@
 </ion-header>
 
 <ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
   <ion-card *ngIf="reserva">
     <ion-card-header>
       <ion-card-title>Esperando al Conductor</ion-card-title>
@@ -20,9 +23,8 @@
 
   <!-- Contenedor del mapa -->
   <div class="ion-margin">
-    <div id="map" style="height: 400px;"></div>
-
-    </div>
+  <div id="map" style="height: 400px;"></div>
+</div>
 
   <div class="ion-text-center" *ngIf="!reserva">
     <p>No hay datos de la reserva en este momento.</p>

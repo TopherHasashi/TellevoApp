@@ -15,6 +15,7 @@ export class EsperaPage implements OnInit {
   idReserva: string = '';
   destino: string = ''; // Para almacenar el destino asociado
   map!: mapboxgl.Map;
+  mostrarMapa: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -27,20 +28,19 @@ export class EsperaPage implements OnInit {
   ngOnInit() {
     this.idReserva = this.route.snapshot.paramMap.get('id') || '';
     if (this.idReserva) {
-      // Obtener los datos de la reserva
       this.db.object(`reservas/${this.idReserva}`).valueChanges().subscribe((data: any) => {
         this.reserva = data;
-        
-        // Verificar si la reserva ha sido finalizada
-      if (this.reserva?.estado === 'finalizado') {
-        this.router.navigate(['/home']);
-      }
-        // Obtener el destino desde el viaje asociado
+  
+        if (this.reserva?.estado === 'finalizado') {
+          this.router.navigate(['/home']);
+        }
+  
+        this.mostrarMapa = this.reserva?.estado === 'iniciado';
+  
         if (this.reserva.idViaje) {
           this.db.object(`viajes/${this.reserva.idViaje}`).valueChanges().subscribe((viaje: any) => {
             this.destino = viaje?.Destino || 'No disponible';
-
-            // Inicializar el mapa después de obtener el destino
+  
             if (viaje?.Destino) {
               this.initializeMap(viaje.Destino, viaje.conductorLocation);
             }
@@ -49,6 +49,7 @@ export class EsperaPage implements OnInit {
       });
     }
   }
+  
 
   initializeMap(address: string, conductorLocation: { lat: number; lng: number }) {
     const mapboxToken = 'pk.eyJ1IjoidG9waGVyaGFzYXNoaSIsImEiOiJjbTNndTdsMTgwOGd2MmtwemE1M3pnYnZrIn0.DdITolvIbnmKgJUAJjjLrw';
@@ -58,8 +59,9 @@ export class EsperaPage implements OnInit {
     this.http.get(geocodingUrl).subscribe((response: any) => {
       if (response.features && response.features.length > 0) {
         const [lngDest, latDest] = response.features[0].center;
-         // Obtener ubicación actual del conductor
-         navigator.geolocation.getCurrentPosition(
+
+        // Obtener ubicación actual del pasajero
+        navigator.geolocation.getCurrentPosition(
           (position) => {
             const lngStart = position.coords.longitude;
             const latStart = position.coords.latitude;
@@ -74,7 +76,7 @@ export class EsperaPage implements OnInit {
             });
 
             this.map.on('load', () => {
-              // Obtener y trazar la ruta
+              // Trazar la ruta en el mapa
               this.drawRoute(lngStart, latStart, lngDest, latDest, mapboxToken, directionsUrl);
             });
           },
@@ -90,19 +92,17 @@ export class EsperaPage implements OnInit {
     });
   }
 
-  // Método para dibujar la ruta en el mapa
   drawRoute(lngStart: number, latStart: number, lngDest: number, latDest: number, mapboxToken: string, directionsUrl: string) {
     const routeUrl = `${directionsUrl}/${lngStart},${latStart};${lngDest},${latDest}?geometries=geojson&access_token=${mapboxToken}`;
 
     this.http.get(routeUrl).subscribe((response: any) => {
       const route = response.routes[0].geometry;
 
-      // Verificar si la fuente de la ruta ya existe y actualizarla, si no, agregarla
       if (this.map.getSource('route')) {
         (this.map.getSource('route') as mapboxgl.GeoJSONSource).setData({
           type: 'Feature',
           properties: {},
-          geometry: route, // GeoJSON con la ruta
+          geometry: route,
         });
       } else {
         this.map.addSource('route', {
@@ -110,7 +110,7 @@ export class EsperaPage implements OnInit {
           data: {
             type: 'Feature',
             properties: {},
-            geometry: route, // GeoJSON con la ruta
+            geometry: route,
           },
         });
 
@@ -133,12 +133,19 @@ export class EsperaPage implements OnInit {
     });
   }
 
+  async mostrarToast(message: string, color: string) {
+    const toast = await this.toastController.create({
+      message,
+      duration: 2000,
+      color,
+    });
+    await toast.present();
+  }
 
   async cancelarReserva() {
     if (this.idReserva) {
       const reserva = this.reserva;
 
-      // Cambiar el estado de la reserva a "cancelado"
       this.db.object(`reservas/${this.idReserva}`).update({ estado: 'cancelado' }).then(async () => {
         console.log('Reserva cancelada correctamente.');
 
@@ -170,4 +177,33 @@ export class EsperaPage implements OnInit {
       });
     }
   }
+  handleRefresh(event: { target: { complete: () => void } }) {
+    if (this.reserva?.idViaje) {
+      // Verificar el estado del viaje en la base de datos
+      this.db.object(`viajes/${this.reserva.idViaje}`).valueChanges().subscribe((viaje: any) => {
+        if (viaje) {
+          if (viaje.estado === 'finalizado') {
+            this.router.navigate(['/home']); // Redirige al home si el viaje ha finalizado
+          }
+  
+          if (viaje.estado === 'iniciado') {
+            this.mostrarMapa = true; // Muestra el mapa si el viaje ha iniciado
+          } else {
+            this.mostrarMapa = false; // Oculta el mapa si el viaje no ha iniciado
+          }
+        }
+  
+        // Finaliza la acción de refrescar
+        event.target.complete();
+      }, (error) => {
+        console.error('Error al cargar los datos del viaje:', error);
+        event.target.complete(); // Asegúrate de finalizar incluso si hay un error
+      });
+    } else {
+      // Si no hay un viaje asociado, finaliza el refresco
+      event.target.complete();
+    }
+  }
+  
+  
 }
