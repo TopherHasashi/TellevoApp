@@ -30,7 +30,11 @@ export class EsperaPage implements OnInit {
       // Obtener los datos de la reserva
       this.db.object(`reservas/${this.idReserva}`).valueChanges().subscribe((data: any) => {
         this.reserva = data;
-
+        
+        // Verificar si la reserva ha sido finalizada
+      if (this.reserva?.estado === 'finalizado') {
+        this.router.navigate(['/home']);
+      }
         // Obtener el destino desde el viaje asociado
         if (this.reserva.idViaje) {
           this.db.object(`viajes/${this.reserva.idViaje}`).valueChanges().subscribe((viaje: any) => {

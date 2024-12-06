@@ -123,12 +123,31 @@ export class ViajeencursoPage implements OnInit, AfterViewInit {
 
   finalizarViaje() {
     if (this.idViaje) {
+      // Cambiar el estado del viaje a "finalizado"
       this.db.object(`viajes/${this.idViaje}`).update({ estado: 'finalizado' }).then(() => {
-        console.log('Viaje finalizado correctamente');
+        console.log('Viaje finalizado correctamente.');
+  
+        // Cambiar el estado de las reservas asociadas al viaje a "finalizado"
+        this.db.list('reservas', ref => ref.orderByChild('idViaje').equalTo(this.idViaje))
+          .snapshotChanges()
+          .subscribe(reservas => {
+            reservas.forEach(reservaSnapshot => {
+              const key = reservaSnapshot.key; // ID de la reserva
+              if (key) {
+                this.db.object(`reservas/${key}`).update({ estado: 'finalizado' }).then(() => {
+                  console.log(`Reserva ${key} finalizada correctamente.`);
+                }).catch(error => {
+                  console.error(`Error al finalizar la reserva ${key}:`, error);
+                });
+              }
+            });
+          });
+  
+        // Redirigir al conductor al home
         this.router.navigate(['/home']);
-      }).catch((error) => {
+      }).catch(error => {
         console.error('Error al finalizar el viaje:', error);
       });
     }
-  }
+  }  
 }
