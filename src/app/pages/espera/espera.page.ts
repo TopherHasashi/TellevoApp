@@ -48,24 +48,36 @@ export class EsperaPage implements OnInit {
 
   initializeMap(address: string, conductorLocation: { lat: number; lng: number }) {
     const mapboxToken = 'pk.eyJ1IjoidG9waGVyaGFzYXNoaSIsImEiOiJjbTNndTdsMTgwOGd2MmtwemE1M3pnYnZrIn0.DdITolvIbnmKgJUAJjjLrw';
+    const directionsUrl = `https://api.mapbox.com/directions/v5/mapbox/driving`;
     const geocodingUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${mapboxToken}`;
 
     this.http.get(geocodingUrl).subscribe((response: any) => {
       if (response.features && response.features.length > 0) {
         const [lngDest, latDest] = response.features[0].center;
+         // Obtener ubicación actual del conductor
+         navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const lngStart = position.coords.longitude;
+            const latStart = position.coords.latitude;
 
-        // Inicializar el mapa centrado en el destino
-        (mapboxgl as any).accessToken = mapboxToken;
-        this.map = new mapboxgl.Map({
-          container: 'map',
-          style: 'mapbox://styles/mapbox/streets-v11',
-          center: [lngDest, latDest],
-          zoom: 14,
-        });
+            // Inicializar el mapa
+            (mapboxgl as any).accessToken = mapboxToken;
+            this.map = new mapboxgl.Map({
+              container: 'map',
+              style: 'mapbox://styles/mapbox/streets-v11',
+              center: [lngStart, latStart], // Centrar en la ubicación actual
+              zoom: 14,
+            });
 
-        this.map.on('load', () => {
-          this.drawRoute(lngDest, latDest, conductorLocation);
-        });
+            this.map.on('load', () => {
+              // Obtener y trazar la ruta
+              this.drawRoute(lngStart, latStart, lngDest, latDest, mapboxToken, directionsUrl);
+            });
+          },
+          (error) => {
+            console.error('Error al obtener la ubicación actual:', error);
+          }
+        );
       } else {
         console.error('No se encontraron coordenadas para esta dirección.');
       }
@@ -74,38 +86,49 @@ export class EsperaPage implements OnInit {
     });
   }
 
-  drawRoute(lngDest: number, latDest: number, conductorLocation: { lat: number; lng: number }) {
-    const directionsUrl = `https://api.mapbox.com/directions/v5/mapbox/driving/${conductorLocation.lng},${conductorLocation.lat};${lngDest},${latDest}?geometries=geojson&access_token=pk.eyJ1IjoidG9waGVyaGFzYXNoaSIsImEiOiJjbTNndTdsMTgwOGd2MmtwemE1M3pnYnZrIn0.DdITolvIbnmKgJUAJjjLrw`;
+  // Método para dibujar la ruta en el mapa
+  drawRoute(lngStart: number, latStart: number, lngDest: number, latDest: number, mapboxToken: string, directionsUrl: string) {
+    const routeUrl = `${directionsUrl}/${lngStart},${latStart};${lngDest},${latDest}?geometries=geojson&access_token=${mapboxToken}`;
 
-    this.http.get(directionsUrl).subscribe((response: any) => {
+    this.http.get(routeUrl).subscribe((response: any) => {
       const route = response.routes[0].geometry;
 
-      this.map.addSource('route', {
-        type: 'geojson',
-        data: {
+      // Verificar si la fuente de la ruta ya existe y actualizarla, si no, agregarla
+      if (this.map.getSource('route')) {
+        (this.map.getSource('route') as mapboxgl.GeoJSONSource).setData({
           type: 'Feature',
           properties: {},
-          geometry: route,
-        },
-      });
+          geometry: route, // GeoJSON con la ruta
+        });
+      } else {
+        this.map.addSource('route', {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            properties: {},
+            geometry: route, // GeoJSON con la ruta
+          },
+        });
 
-      this.map.addLayer({
-        id: 'route',
-        type: 'line',
-        source: 'route',
-        layout: {
-          'line-join': 'round',
-          'line-cap': 'round',
-        },
-        paint: {
-          'line-color': '#ff0000',
-          'line-width': 5,
-        },
-      });
+        this.map.addLayer({
+          id: 'route',
+          type: 'line',
+          source: 'route',
+          layout: {
+            'line-join': 'round',
+            'line-cap': 'round',
+          },
+          paint: {
+            'line-color': '#1db7dd',
+            'line-width': 5,
+          },
+        });
+      }
     }, error => {
       console.error('Error al obtener la ruta:', error);
     });
   }
+
 
   async cancelarReserva() {
     if (this.idReserva) {
