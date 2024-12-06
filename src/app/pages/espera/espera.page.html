@@ -18,11 +18,14 @@
     </ion-card-content>
   </ion-card>
 
+  <!-- Contenedor del mapa -->
+  <div id="map" style="height: 300px;"></div>
+
   <div class="ion-text-center" *ngIf="!reserva">
     <p>No hay datos de la reserva en este momento.</p>
   </div>
 
   <ion-footer *ngIf="reserva">
-    <ion-button expand="block" color="secondary" (click)="cancelarReserva()">Cancelar Reserva</ion-button>
+    <ion-button expand="block" color="danger" (click)="cancelarReserva()">Cancelar Reserva</ion-button>
   </ion-footer>
 </ion-content>
