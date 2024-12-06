@@ -15,7 +15,6 @@ export class EsperaPage implements OnInit {
   idReserva: string = '';
   destino: string = ''; // Para almacenar el destino asociado
   map!: mapboxgl.Map;
-  mostrarMapa: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -34,8 +33,6 @@ export class EsperaPage implements OnInit {
         if (this.reserva?.estado === 'finalizado') {
           this.router.navigate(['/home']);
         }
-  
-        this.mostrarMapa = this.reserva?.estado === 'iniciado';
   
         if (this.reserva.idViaje) {
           this.db.object(`viajes/${this.reserva.idViaje}`).valueChanges().subscribe((viaje: any) => {
@@ -177,33 +174,4 @@ export class EsperaPage implements OnInit {
       });
     }
   }
-  handleRefresh(event: { target: { complete: () => void } }) {
-    if (this.reserva?.idViaje) {
-      // Verificar el estado del viaje en la base de datos
-      this.db.object(`viajes/${this.reserva.idViaje}`).valueChanges().subscribe((viaje: any) => {
-        if (viaje) {
-          if (viaje.estado === 'finalizado') {
-            this.router.navigate(['/home']); // Redirige al home si el viaje ha finalizado
-          }
-  
-          if (viaje.estado === 'iniciado') {
-            this.mostrarMapa = true; // Muestra el mapa si el viaje ha iniciado
-          } else {
-            this.mostrarMapa = false; // Oculta el mapa si el viaje no ha iniciado
-          }
-        }
-  
-        // Finaliza la acción de refrescar
-        event.target.complete();
-      }, (error) => {
-        console.error('Error al cargar los datos del viaje:', error);
-        event.target.complete(); // Asegúrate de finalizar incluso si hay un error
-      });
-    } else {
-      // Si no hay un viaje asociado, finaliza el refresco
-      event.target.complete();
-    }
-  }
-  
-  
 }

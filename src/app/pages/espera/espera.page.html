@@ -8,9 +8,6 @@
 </ion-header>
 
 <ion-content>
-  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
-    <ion-refresher-content></ion-refresher-content>
-  </ion-refresher>
   <ion-card *ngIf="reserva">
     <ion-card-header>
       <ion-card-title>Esperando al Conductor</ion-card-title>
