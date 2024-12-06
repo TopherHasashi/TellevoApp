@@ -29,7 +29,7 @@
 
       <!-- Lista de sugerencias de autocompletado -->
       <ion-list *ngIf="sugerencias.length > 0">
-        <ion-item *ngFor="let lugar of sugerencias" (click)="seleccionarDestino(lugar)">
+        <ion-item *ngFor="let lugar of sugerencias" (click)="seleccionarDestino(lugar)" color="secondary">
           {{ lugar.place_name }}
         </ion-item>
       </ion-list>
