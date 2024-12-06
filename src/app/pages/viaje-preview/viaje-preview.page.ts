@@ -3,6 +3,7 @@ import { ActivatedRoute , Router } from '@angular/router';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { AlertController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
+import { Usuario } from 'src/app/interfaces/iusuario';
 
 @Component({
   selector: 'app-viaje-preview',
@@ -12,6 +13,8 @@ import { Subscription } from 'rxjs';
 export class ViajePreviewPage implements OnInit, OnDestroy {
   viaje: any = {}; 
   private viajeSubscription: Subscription | null = null; 
+  reservas: any[] = []; // Lista de reservas
+  usuario: Usuario | null = null; // Usuario autenticado
 
   constructor(
     private route: ActivatedRoute, // Manejo de rutas
@@ -21,21 +24,32 @@ export class ViajePreviewPage implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    const id = this.route.snapshot.paramMap.get('id'); // Obtener el ID del viaje desde la URL
-    if (id) {
-      // Suscribirse a los datos del viaje
-      this.viajeSubscription = this.db.object(`viajes/${id}`).valueChanges().subscribe((data: any) => {
-        if (data) {
-          this.viaje = data; // Guardar los datos del viaje
-          console.log('Detalles del viaje:', this.viaje);
-        } else {
-          console.error('No se encontraron datos para el ID:', id);
-        }
-      });
-    } else {
-      console.error('ID no proporcionado en la ruta');
-    }
+  const id = this.route.snapshot.paramMap.get('id');
+  if (id) {
+    this.db.object(`viajes/${id}`).valueChanges().subscribe((data: any) => {
+      if (data) {
+        this.viaje = data;
+        this.loadReservas(); // Cargar reservas después de obtener el viaje
+      } else {
+        console.error('No se encontraron datos para el ID:', id);
+      }
+    });
+  } else {
+    console.error('ID no proporcionado en la ruta');
   }
+}
+
+  loadReservas() {
+  const viajeId = this.route.snapshot.paramMap.get('id');
+  if (viajeId) {
+    this.db.list('reservas', (ref) => ref.orderByChild('idViaje').equalTo(viajeId))
+      .valueChanges()
+      .subscribe((data: any[]) => {
+        this.reservas = data;
+        console.log('Reservas asociadas al viaje:', this.reservas);
+      });
+  }
+}
 
   ngOnDestroy() {
     // Cancelar la suscripción cuando el componente se destruya

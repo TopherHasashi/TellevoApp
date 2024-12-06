@@ -68,7 +68,7 @@ export class ReservaPage implements OnInit {
   }
   async guardarReservaLocal(reservaData: any): Promise<void> {
     try {
-      await this.localdbService.guardar(`reserva_${reservaData.idViaje}`, reservaData);
+      this.localdbService.guardar(`reserva_${reservaData.idViaje}`, reservaData);
       console.log('Reserva guardada localmente:', reservaData);
     } catch (error) {
       console.error('Error al guardar la reserva localmente:', error);
