@@ -46,7 +46,7 @@ export class AppComponent implements OnInit {
       } else {
         console.log('No hay usuario autenticado.');
         this.localdbService.remover('user'); // Eliminar datos locales
-        this.router.navigate(['/login']); // Redirigir al login
+        this.router.navigate(['/inicio']); // Redirigir al inicio
       }
     });
   }
