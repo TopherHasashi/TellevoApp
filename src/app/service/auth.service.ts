@@ -3,7 +3,7 @@ import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { Router } from '@angular/router';
 import { LocaldbService } from './localdb.service';
-import { Usuario } from '../interfaces/iusuario';
+import { Usuario, Vehiculo } from '../interfaces/iusuario';
 
 @Injectable({
   providedIn: 'root',
@@ -34,7 +34,7 @@ export class AuthService {
             email: result.user.email,
             nombre: userData?.nombre || '',
             apellido: userData?.apellido || '',
-            tieneAuto: !!userData?.vehiculo, // Comprueba si tiene auto
+            tieneAuto: !!userData?.Vehiculo, // Comprueba si tiene auto
           });
         }
 

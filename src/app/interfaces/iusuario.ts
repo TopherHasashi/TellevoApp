@@ -4,7 +4,7 @@ export interface Usuario {
     password: string;
     nombre: string;
     apellido: string;
-    vehiculo?: Vehiculo;
+    Vehiculo?: Vehiculo;
   }
   
   export interface Vehiculo {
