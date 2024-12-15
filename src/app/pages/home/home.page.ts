@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { NavController, ToastController } from '@ionic/angular';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
@@ -15,7 +15,7 @@ export class HomePage implements OnInit {
   apellido: string = '';
   tieneAuto: boolean = false;
   viajeActivo: any = null;
-  reservaActiva: any = null; // Propiedad para la reserva activa
+  reservaActiva: any = null;
 
   constructor(
     private navCtrl: NavController,
@@ -23,81 +23,96 @@ export class HomePage implements OnInit {
     private afAuth: AngularFireAuth,
     private toastController: ToastController,
     private db: AngularFireDatabase,
-    private localdbService: LocaldbService
+    private localdbService: LocaldbService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   async ngOnInit() {
-    const storedUser = await this.localdbService.leer('user'); // Leer datos del almacenamiento local
-    if (storedUser) {
-      console.log('Usuario cargado del almacenamiento local:', storedUser);
+    const user = await this.afAuth.currentUser;
 
-      // Asignar valores al componente
-      this.nombre = storedUser.nombre || '';
-      this.apellido = storedUser.apellido || '';
-      this.tieneAuto = !!storedUser.Vehiculo;
-
-      // Cargar viajes y reservas desde almacenamiento local
-      const storedViaje = await this.localdbService.leer('viajeActivo');
-      const storedReserva = await this.localdbService.leer('reservaActiva');
-
-      if (storedViaje) {
-        this.viajeActivo = storedViaje;
-      } else {
-        this.cargarViajesActivos(storedUser.uid);
-      }
-
-      if (storedReserva) {
-        this.reservaActiva = storedReserva;
-      } else {
-        this.cargarReservasActivas(storedUser.uid);
+    if (user) {
+      // Intentar cargar datos desde Firestore
+      try {
+        await this.cargarDatosDesdeFirestore(user.uid);
+      } catch (error) {
+        console.error('Error al cargar datos desde Firestore:', error);
+        // Si falla Firestore, intentar cargar datos del almacenamiento local
+        await this.cargarDatosDesdeAlmacenamientoLocal();
       }
     } else {
-      // Si no hay datos en local, redirigir al login
-      this.afAuth.currentUser.then((user) => {
-        if (user) {
-          this.localdbService.guardar('user', { uid: user.uid });
-          this.cargarDatosUsuario(user.uid);
-        } else {
-          console.log('No hay datos locales. Redirigiendo al login...');
-          this.navCtrl.navigateRoot('/login');
-        }
-      });
+      // Si no hay usuario autenticado, intentar cargar datos del almacenamiento local
+      const storedUser = await this.localdbService.leer('user');
+      if (storedUser) {
+        this.nombre = storedUser.nombre || '';
+        this.apellido = storedUser.apellido || '';
+        this.tieneAuto = !!storedUser.tieneAuto;
+
+        // Cargar viajes y reservas desde almacenamiento local
+        this.viajeActivo = await this.localdbService.leer('viajeActivo');
+        this.reservaActiva = await this.localdbService.leer('reservaActiva');
+
+        this.presentWelcomeToast();
+        this.cdr.detectChanges();
+      } else {
+        console.log('No hay datos locales. Redirigiendo al login...');
+        this.navCtrl.navigateRoot('/login');
+      }
     }
   }
 
-  cargarDatosUsuario(uid: string) {
-    // Obtener información de Firestore
-    this.firestore
-      .collection('usuarios')
-      .doc(uid)
-      .get()
-      .subscribe(async (doc) => {
-        if (doc.exists) {
-          const data: any = doc.data();
-          this.nombre = data.nombre || '';
-          this.apellido = data.apellido || '';
-          this.tieneAuto = !!data.Vehiculo;
+  async cargarDatosDesdeFirestore(uid: string) {
+    const userDoc = await this.firestore.collection('usuarios').doc(uid).get().toPromise();
 
-          // Guardar datos en almacenamiento local
-          await this.localdbService.guardar('user', {
-            uid,
-            nombre: this.nombre,
-            apellido: this.apellido,
-            Vehiculo: data.Vehiculo,
-          });
+    if (userDoc?.exists) {
+      const userData: any = userDoc.data();
 
-          this.presentWelcomeToast();
-        }
+      this.nombre = userData.nombre || '';
+      this.apellido = userData.apellido || '';
+      this.tieneAuto = !!userData.Vehiculo;
+
+      // Guardar los datos en almacenamiento local
+      await this.localdbService.guardar('user', {
+        uid,
+        nombre: this.nombre,
+        apellido: this.apellido,
+        tieneAuto: this.tieneAuto,
       });
 
-    // Cargar viajes activos
-    this.cargarViajesActivos(uid);
+      console.log('Datos del usuario obtenidos desde Firestore y guardados localmente.');
+      this.presentWelcomeToast();
 
-    // Cargar reservas activas
-    this.cargarReservasActivas(uid);
+      // Cargar viajes y reservas activos
+      await this.cargarViajeActivo(uid);
+      await this.cargarReservaActiva(uid);
+    } else {
+      throw new Error('No se encontraron datos en Firestore.');
+    }
   }
 
-  cargarViajesActivos(uid: string) {
+  async cargarDatosDesdeAlmacenamientoLocal() {
+    const storedUser = await this.localdbService.leer('user');
+    const storedViaje = await this.localdbService.leer('viajeActivo');
+    const storedReserva = await this.localdbService.leer('reservaActiva');
+
+    if (storedUser) {
+      this.nombre = storedUser.nombre || '';
+      this.apellido = storedUser.apellido || '';
+      this.tieneAuto = !!storedUser.tieneAuto;
+    }
+
+    if (storedViaje) {
+      this.viajeActivo = storedViaje;
+    }
+
+    if (storedReserva) {
+      this.reservaActiva = storedReserva;
+    }
+
+    this.cdr.detectChanges();
+    console.log('Datos cargados desde almacenamiento local.');
+  }
+
+  async cargarViajeActivo(uid: string) {
     this.db
       .list('viajes', (ref) => ref.orderByChild('idUsuario').equalTo(uid))
       .valueChanges()
@@ -105,23 +120,31 @@ export class HomePage implements OnInit {
         this.viajeActivo = viajes.find(
           (viaje) => viaje.estado === 'activo' || viaje.estado === 'iniciado'
         );
+
         if (this.viajeActivo) {
           await this.localdbService.guardar('viajeActivo', this.viajeActivo);
+        } else {
+          await this.localdbService.remover('viajeActivo');
         }
+
+        this.cdr.detectChanges();
       });
   }
 
-  cargarReservasActivas(uid: string) {
+  async cargarReservaActiva(uid: string) {
     this.db
       .list('reservas', (ref) => ref.orderByChild('idUsuario').equalTo(uid))
       .valueChanges()
       .subscribe(async (reservas: any[]) => {
-        this.reservaActiva = reservas.find(
-          (reserva) => reserva.estado === 'activo'
-        );
+        this.reservaActiva = reservas.find((reserva) => reserva.estado === 'activo');
+
         if (this.reservaActiva) {
           await this.localdbService.guardar('reservaActiva', this.reservaActiva);
+        } else {
+          await this.localdbService.remover('reservaActiva');
         }
+
+        this.cdr.detectChanges();
       });
   }
 
@@ -135,10 +158,10 @@ export class HomePage implements OnInit {
   }
 
   logout() {
-    this.localdbService.remover('user'); // Eliminar datos locales del usuario
+    this.localdbService.remover('user');
     this.localdbService.remover('viajeActivo');
-    this.localdbService.remover('reservaActiva'); // Eliminar datos de viajes y reservas
-    this.afAuth.signOut(); // Cerrar sesión de Firebase
+    this.localdbService.remover('reservaActiva');
+    this.afAuth.signOut();
     this.navCtrl.navigateRoot('/login');
   }
 
@@ -153,15 +176,6 @@ export class HomePage implements OnInit {
   navegarAReserva() {
     if (this.reservaActiva?.estado === 'activo') {
       this.navCtrl.navigateForward(`/espera/${this.reservaActiva.idReserva}`);
-    }
-  }
-
-  async configurePersistence() {
-    try {
-      await this.afAuth.setPersistence('local'); // Configurar persistencia local
-      console.log('Persistencia configurada correctamente.');
-    } catch (error) {
-      console.error('Error configurando la persistencia:', error);
     }
   }
 }

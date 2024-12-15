@@ -1,128 +1,131 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute , Router } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
-import { AlertController } from '@ionic/angular';
-import { Subscription } from 'rxjs';
-import { Usuario } from 'src/app/interfaces/iusuario';
+import { ToastController, AlertController } from '@ionic/angular';
+import { LocaldbService } from 'src/app/service/localdb.service';
 
 @Component({
   selector: 'app-viaje-preview',
   templateUrl: './viaje-preview.page.html',
   styleUrls: ['./viaje-preview.page.scss'],
 })
-export class ViajePreviewPage implements OnInit, OnDestroy {
-  viaje: any = {}; 
-  private viajeSubscription: Subscription | null = null; 
-  reservas: any[] = []; // Lista de reservas
-  usuario: Usuario | null = null; // Usuario autenticado
+export class ViajePreviewPage implements OnInit {
+  viaje: any = {}; // Datos del viaje
+  idViaje: string = '';
+  reservas: any[] = []; // Lista de reservas asociadas al viaje
 
   constructor(
-    private route: ActivatedRoute, // Manejo de rutas
-    private db: AngularFireDatabase, // Firebase Realtime Database
-    private router: Router, // Redirección
-    private alertController: AlertController // Alertas para confirmar acciones
+    private route: ActivatedRoute,
+    private db: AngularFireDatabase,
+    private toastController: ToastController,
+    private router: Router,
+    private alertController: AlertController,
+    private localdbService: LocaldbService
   ) {}
 
-  ngOnInit() {
-  const id = this.route.snapshot.paramMap.get('id');
-  if (id) {
-    this.db.object(`viajes/${id}`).valueChanges().subscribe((data: any) => {
-      if (data) {
-        this.viaje = data;
-        this.loadReservas(); // Cargar reservas después de obtener el viaje
-      } else {
-        console.error('No se encontraron datos para el ID:', id);
+  async ngOnInit() {
+    this.idViaje = this.route.snapshot.paramMap.get('id') || '';
+
+    if (this.idViaje) {
+      try {
+        // Intentar cargar datos desde Firebase
+        this.db.object(`viajes/${this.idViaje}`).valueChanges().subscribe(async (data: any) => {
+          if (data) {
+            this.viaje = data;
+            await this.localdbService.guardar(`viaje_${this.idViaje}`, data); // Guardar en almacenamiento local
+          } else {
+            // Si no hay datos en Firebase, cargar desde almacenamiento local
+            this.viaje = await this.localdbService.leer(`viaje_${this.idViaje}`);
+            if (!this.viaje) {
+              this.router.navigate(['/home']);
+              this.mostrarToast('No se encontró el viaje.', 'warning');
+            }
+          }
+        });
+
+        // Cargar reservas asociadas
+        this.loadReservas();
+      } catch (error) {
+        console.error('Error al cargar datos del viaje:', error);
+        // Cargar desde almacenamiento local si hay un problema
+        this.viaje = await this.localdbService.leer(`viaje_${this.idViaje}`);
+        if (!this.viaje) {
+          this.router.navigate(['/home']);
+          this.mostrarToast('No se encontró el viaje.', 'warning');
+        }
       }
+    } else {
+      this.router.navigate(['/home']);
+      this.mostrarToast('ID de viaje no válido.', 'danger');
+    }
+  }
+
+  async mostrarToast(mensaje: string, color: string) {
+    const toast = await this.toastController.create({
+      message: mensaje,
+      duration: 2000,
+      color: color,
     });
-  } else {
-    console.error('ID no proporcionado en la ruta');
-  }
-}
-
-  loadReservas() {
-  const viajeId = this.route.snapshot.paramMap.get('id');
-  if (viajeId) {
-    this.db.list('reservas', (ref) => ref.orderByChild('idViaje').equalTo(viajeId))
-      .valueChanges()
-      .subscribe((data: any[]) => {
-        this.reservas = data;
-        console.log('Reservas asociadas al viaje:', this.reservas);
-      });
-  }
-}
-
-  ngOnDestroy() {
-    // Cancelar la suscripción cuando el componente se destruya
-    if (this.viajeSubscription) {
-      this.viajeSubscription.unsubscribe();
-      console.log('Suscripción a viaje cancelada.');
-    }
-  }
-
-  iniciarRecorrido() {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (id) {
-      this.db.object(`viajes/${id}`).update({ estado: 'iniciado' }).then(() => {
-        console.log('Viaje iniciado con éxito');
-        this.router.navigate(['/viajeencurso', id]); // Redirige a la nueva página
-      }).catch((error) => {
-        console.error('Error al iniciar el viaje:', error);
-      });
-    }
+    await toast.present();
   }
 
   async presentConfirmAlert() {
     const alert = await this.alertController.create({
-      header: 'Confirmar Cancelación',
+      header: 'Cancelar viaje',
       message: '¿Estás seguro de que deseas cancelar este viaje?',
       buttons: [
         {
           text: 'No',
           role: 'cancel',
-          handler: () => {
-            console.log('Cancelación abortada.');
-          },
         },
         {
-          text: 'Sí, cancelar',
+          text: 'Sí',
           handler: () => {
-            this.cancelarViaje(); // Llamar al método para cancelar el viaje
+            this.cancelarViaje();
           },
         },
       ],
     });
-
     await alert.present();
   }
 
   cancelarViaje() {
-    const id = this.viaje.id; // Obtener el ID del viaje
-    if (id) {
-      // Cambiar el estado de las reservas asociadas a "cancelado"
-      this.db.list('reservas', (ref) => ref.orderByChild('idViaje').equalTo(id))
-        .snapshotChanges()
-        .subscribe((snapshots) => {
-          snapshots.forEach((snapshot) => {
-            const reservaKey = snapshot.key; // ID de la reserva
-            if (reservaKey) {
-              this.db.object(`reservas/${reservaKey}`).update({ estado: 'cancelado' }).then(() => {
-                console.log(`Reserva ${reservaKey} asociada al viaje ${id} cancelada.`);
-              }).catch((error) => {
-                console.error(`Error al cancelar la reserva ${reservaKey}:`, error);
-              });
-            }
-          });
-  
-          // Eliminar el viaje de la base de datos
-          this.db.object(`viajes/${id}`).remove().then(() => {
-            console.log('Viaje eliminado correctamente.');
-            this.router.navigate(['/conductor']); // Redirigir al conductor a su página principal
-          }).catch((error) => {
-            console.error('Error al eliminar el viaje:', error);
-          });
-        });
-    } else {
-      console.error('ID del viaje no encontrado. No se puede eliminar.');
+    if (this.idViaje) {
+      this.db.object(`viajes/${this.idViaje}`).remove().then(async () => {
+        this.router.navigate(['/home']);
+        this.mostrarToast('Viaje cancelado correctamente.', 'success');
+      }).catch(async (error) => {
+        console.error('Error al cancelar el viaje:', error);
+        this.mostrarToast('Error al cancelar el viaje.', 'danger');
+      });
     }
   }
-}  
+
+  iniciarRecorrido() {
+    if (this.idViaje) {
+      this.db.object(`viajes/${this.idViaje}`).update({ estado: 'iniciado' }).then(() => {
+        this.router.navigate([`/viajeencurso/${this.idViaje}`]);
+        this.mostrarToast('Viaje iniciado.', 'success');
+      }).catch((error) => {
+        console.error('Error al iniciar el viaje:', error);
+        this.mostrarToast('Error al iniciar el viaje.', 'danger');
+      });
+    }
+  }
+
+  loadReservas() {
+    this.db
+      .list('reservas', (ref) => ref.orderByChild('idViaje').equalTo(this.idViaje))
+      .valueChanges()
+      .subscribe((reservas: any[]) => {
+        this.reservas = reservas;
+        // Guardar reservas localmente
+        this.localdbService.guardar(`reservas_${this.idViaje}`, reservas);
+      }, async (error) => {
+        console.error('Error al cargar reservas:', error);
+        // Cargar reservas desde almacenamiento local en caso de error
+        const storedReservas = await this.localdbService.leer(`reservas_${this.idViaje}`);
+        this.reservas = storedReservas || [];
+      });
+  }
+}
