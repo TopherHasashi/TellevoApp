@@ -28,103 +28,104 @@ export class HomePage implements OnInit {
   ) {}
 
   async ngOnInit() {
-    const storedUser = await this.localdbService.leer('user'); // Leer datos del almacenamiento local
+  try {
+    // Intentar cargar datos desde el almacenamiento local
+    const storedUser = await this.localdbService.leer('user');
     if (storedUser) {
       console.log('Usuario cargado del almacenamiento local:', storedUser);
-  
-      // Asignar valores al componente
+
+      // Asignar valores al componente desde almacenamiento local
       this.nombre = storedUser.nombre || '';
       this.apellido = storedUser.apellido || '';
-      this.tieneAuto = !!storedUser.Vehiculo; // Si Vehiculo existe, asigna true
-  
-      // Verificar si hay datos de viajes o reservas en Firebase
-      this.cargarDatosDesdeFirestore(storedUser.uid);
-    } else {
-      console.log('Cargando datos desde Firebase...');
-      this.afAuth.currentUser.then((user) => {
-        if (user) {
-          this.firestore
-            .collection('usuarios')
-            .doc(user.uid)
-            .get()
-            .subscribe(async (doc) => {
-              if (doc.exists) {
-                const data: any = doc.data();
-                this.nombre = data.nombre || '';
-                this.apellido = data.apellido || '';
-                this.tieneAuto = !!data.Vehiculo;
-  
-                // Guardar datos del usuario en el almacenamiento local
-                await this.localdbService.guardar('user', {
-                  uid: user.uid,
-                  nombre: this.nombre,
-                  apellido: this.apellido,
-                  Vehiculo: data.Vehiculo || null,
-                });
-  
-                this.cargarDatosDesdeFirestore(user.uid);
-              }
-            });
-        } else {
-          console.log('No se encontró usuario autenticado. Redirigiendo al login...');
-          this.navCtrl.navigateRoot('/login');
-        }
-      });
-    }
-  }
-  
+      this.tieneAuto = !!storedUser.Vehiculo;
 
-  async cargarDatosDesdeFirestore(uid: string) {
-    const userDoc = await this.firestore.collection('usuarios').doc(uid).get().toPromise();
+      // Cargar datos adicionales desde almacenamiento local
+      await this.cargarDatosDesdeAlmacenamientoLocal();
 
-    if (userDoc?.exists) {
-      const userData: any = userDoc.data();
-
-      this.nombre = userData.nombre || '';
-      this.apellido = userData.apellido || '';
-      this.tieneAuto = !!userData.Vehiculo;
-
-      // Guardar los datos en almacenamiento local
-      await this.localdbService.guardar('user', {
-        uid,
-        nombre: this.nombre,
-        apellido: this.apellido,
-        tieneAuto: this.tieneAuto,
-      });
-
-      console.log('Datos del usuario obtenidos desde Firestore y guardados localmente.');
+      console.log('Datos cargados localmente.');
       this.presentWelcomeToast();
+      return; // Salir del flujo si se encuentran datos locales
+    }
 
-      // Cargar viajes y reservas activos
-      await this.cargarViajeActivo(uid);
-      await this.cargarReservaActiva(uid);
+    // Si no hay datos locales, intentar autenticación con Firebase
+    const user = await this.afAuth.currentUser;
+    if (user) {
+      console.log('Usuario autenticado en Firebase:', user.uid);
+      await this.cargarDatosDesdeFirestore(user.uid);
     } else {
-      throw new Error('No se encontraron datos en Firestore.');
+      console.log('No hay usuario autenticado en Firebase. Redirigiendo al login...');
+      this.navCtrl.navigateRoot('/login');
+    }
+  } catch (error) {
+    console.error('Error al cargar datos en ngOnInit:', error);
+    this.presentToast('Error al cargar los datos. Por favor, inténtelo de nuevo.', 'danger');
+    this.navCtrl.navigateRoot('/login'); // Redirigir al login en caso de error
+  }
+}
+
+  
+  async cargarDatosDesdeFirestore(uid: string) {
+    try {
+      const doc = await this.firestore.collection('usuarios').doc(uid).get().toPromise();
+      if (doc?.exists) {
+        const userData: any = doc.data();
+  
+        this.nombre = userData.nombre || '';
+        this.apellido = userData.apellido || '';
+        this.tieneAuto = !!userData.Vehiculo;
+  
+        // Guardar datos localmente
+        await this.localdbService.guardar('user', {
+          uid,
+          nombre: this.nombre,
+          apellido: this.apellido,
+          Vehiculo: userData.Vehiculo || null,
+        });
+  
+        // Cargar viajes y reservas activos desde Firebase
+        await this.cargarViajeActivo(uid);
+        await this.cargarReservaActiva(uid);
+  
+        console.log('Datos cargados desde Firestore y almacenados localmente.');
+      } else {
+        console.log('No se encontraron datos en Firestore.');
+      }
+    } catch (error) {
+      console.error('Error al cargar datos desde Firestore:', error);
+      throw new Error('Error al cargar datos desde Firestore.');
     }
   }
-
+  
   async cargarDatosDesdeAlmacenamientoLocal() {
-    const storedUser = await this.localdbService.leer('user');
-    const storedViaje = await this.localdbService.leer('viajeActivo');
-    const storedReserva = await this.localdbService.leer('reservaActiva');
-
-    if (storedUser) {
-      this.nombre = storedUser.nombre || '';
-      this.apellido = storedUser.apellido || '';
-      this.tieneAuto = !!storedUser.tieneAuto;
+    try {
+      const storedViaje = await this.localdbService.leer('viajeActivo');
+      const storedReserva = await this.localdbService.leer('reservaActiva');
+  
+      if (storedViaje) {
+        this.viajeActivo = storedViaje;
+      }
+  
+      if (storedReserva) {
+        this.reservaActiva = storedReserva;
+      }
+  
+      this.cdr.detectChanges();
+      console.log('Datos cargados desde almacenamiento local.');
+    } catch (error) {
+      console.error('Error al cargar datos desde almacenamiento local:', error);
     }
-
-    if (storedViaje) {
-      this.viajeActivo = storedViaje;
-    }
-
-    if (storedReserva) {
-      this.reservaActiva = storedReserva;
-    }
-
-    this.cdr.detectChanges();
-    console.log('Datos cargados desde almacenamiento local.');
   }
+  
+  async presentToast(message: string, color: string) {
+    const toast = await this.toastController.create({
+      message,
+      duration: 2000,
+      color,
+      position: 'top',
+    });
+    await toast.present();
+  }
+  
 
   async cargarViajeActivo(uid: string) {
     this.db
