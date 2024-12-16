@@ -28,37 +28,51 @@ export class HomePage implements OnInit {
   ) {}
 
   async ngOnInit() {
-    const user = await this.afAuth.currentUser;
-
-    if (user) {
-      // Intentar cargar datos desde Firestore
-      try {
-        await this.cargarDatosDesdeFirestore(user.uid);
-      } catch (error) {
-        console.error('Error al cargar datos desde Firestore:', error);
-        // Si falla Firestore, intentar cargar datos del almacenamiento local
-        await this.cargarDatosDesdeAlmacenamientoLocal();
-      }
+    const storedUser = await this.localdbService.leer('user'); // Leer datos del almacenamiento local
+    if (storedUser) {
+      console.log('Usuario cargado del almacenamiento local:', storedUser);
+  
+      // Asignar valores al componente
+      this.nombre = storedUser.nombre || '';
+      this.apellido = storedUser.apellido || '';
+      this.tieneAuto = !!storedUser.Vehiculo; // Si Vehiculo existe, asigna true
+  
+      // Verificar si hay datos de viajes o reservas en Firebase
+      this.cargarDatosDesdeFirestore(storedUser.uid);
     } else {
-      // Si no hay usuario autenticado, intentar cargar datos del almacenamiento local
-      const storedUser = await this.localdbService.leer('user');
-      if (storedUser) {
-        this.nombre = storedUser.nombre || '';
-        this.apellido = storedUser.apellido || '';
-        this.tieneAuto = !!storedUser.tieneAuto;
-
-        // Cargar viajes y reservas desde almacenamiento local
-        this.viajeActivo = await this.localdbService.leer('viajeActivo');
-        this.reservaActiva = await this.localdbService.leer('reservaActiva');
-
-        this.presentWelcomeToast();
-        this.cdr.detectChanges();
-      } else {
-        console.log('No hay datos locales. Redirigiendo al login...');
-        this.navCtrl.navigateRoot('/login');
-      }
+      console.log('Cargando datos desde Firebase...');
+      this.afAuth.currentUser.then((user) => {
+        if (user) {
+          this.firestore
+            .collection('usuarios')
+            .doc(user.uid)
+            .get()
+            .subscribe(async (doc) => {
+              if (doc.exists) {
+                const data: any = doc.data();
+                this.nombre = data.nombre || '';
+                this.apellido = data.apellido || '';
+                this.tieneAuto = !!data.Vehiculo;
+  
+                // Guardar datos del usuario en el almacenamiento local
+                await this.localdbService.guardar('user', {
+                  uid: user.uid,
+                  nombre: this.nombre,
+                  apellido: this.apellido,
+                  Vehiculo: data.Vehiculo || null,
+                });
+  
+                this.cargarDatosDesdeFirestore(user.uid);
+              }
+            });
+        } else {
+          console.log('No se encontró usuario autenticado. Redirigiendo al login...');
+          this.navCtrl.navigateRoot('/login');
+        }
+      });
     }
   }
+  
 
   async cargarDatosDesdeFirestore(uid: string) {
     const userDoc = await this.firestore.collection('usuarios').doc(uid).get().toPromise();
