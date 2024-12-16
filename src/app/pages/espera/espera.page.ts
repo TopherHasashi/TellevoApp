@@ -28,50 +28,56 @@ export class EsperaPage implements OnInit {
 
   async ngOnInit() {
     this.idReserva = this.route.snapshot.paramMap.get('id') || '';
+
     if (this.idReserva) {
-      try {
-        // Intentar cargar datos desde Firebase
+      // Intentar cargar desde almacenamiento local primero
+      this.reserva = await this.localdbService.leer(`reserva_${this.idReserva}`);
+
+      if (this.reserva) {
+        console.log('Datos de reserva cargados localmente:', this.reserva);
+        this.postCargaReserva();
+      } else {
+        // Si no hay datos locales, intentar cargar desde Firebase
         this.db.object(`reservas/${this.idReserva}`).valueChanges().subscribe(async (data: any) => {
           if (data) {
             this.reserva = data;
-            await this.localdbService.guardar(`reserva_${this.idReserva}`, data); // Guardar en almacenamiento local
-
-            if (this.reserva?.estado === 'finalizado') {
-              this.router.navigate(['/home']);
-            }
-
-            if (this.reserva.idViaje) {
-              this.cargarDatosViaje(this.reserva.idViaje);
-            }
+            await this.localdbService.guardar(`reserva_${this.idReserva}`, data);
+            this.postCargaReserva();
           } else {
-            // Cargar datos desde almacenamiento local si no están disponibles en Firebase
-            this.reserva = await this.localdbService.leer(`reserva_${this.idReserva}`);
-            if (this.reserva?.estado === 'finalizado') {
-              this.router.navigate(['/home']);
-            }
-
-            if (this.reserva?.idViaje) {
-              this.cargarDatosViaje(this.reserva.idViaje);
-            } else {
-              this.mostrarToast('No se encontró información de la reserva.', 'warning');
-            }
+            this.router.navigate(['/home']);
+            this.mostrarToast('No se encontró la reserva.', 'danger');
           }
         });
-      } catch (error) {
-        console.error('Error al cargar datos de la reserva:', error);
-        this.reserva = await this.localdbService.leer(`reserva_${this.idReserva}`);
-        if (this.reserva) {
-          if (this.reserva?.idViaje) {
-            this.cargarDatosViaje(this.reserva.idViaje);
-          }
-        } else {
-          this.router.navigate(['/home']);
-          this.mostrarToast('No se encontró la reserva.', 'danger');
-        }
       }
     } else {
       this.router.navigate(['/home']);
       this.mostrarToast('ID de reserva no válido.', 'danger');
+    }
+  }
+
+  async postCargaReserva() {
+    if (this.reserva?.estado === 'finalizado') {
+      this.router.navigate(['/home']);
+      return;
+    }
+
+    if (this.reserva?.idViaje) {
+      const viajeLocal = await this.localdbService.leer(`viaje_${this.reserva.idViaje}`);
+      if (viajeLocal) {
+        this.destino = viajeLocal?.Destino || 'No disponible';
+        this.initializeMap(viajeLocal.Destino,viajeLocal.conductorLocation);
+      } else {
+        // Si no hay datos locales, intentar cargar desde Firebase
+        this.db.object(`viajes/${this.reserva.idViaje}`).valueChanges().subscribe(async (viaje: any) => {
+          if (viaje) {
+            this.destino = viaje?.Destino || 'No disponible';
+            await this.localdbService.guardar(`viaje_${this.reserva.idViaje}`, viaje);
+            this.initializeMap(viaje.Destino,viaje.conductorLocation);
+          } else {
+            this.mostrarToast('No se encontraron datos del viaje.', 'warning');
+          }
+        });
+      }
     }
   }
 
