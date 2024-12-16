@@ -14,6 +14,7 @@ import { ToastController } from '@ionic/angular';
 export class ViajeencursoPage implements OnInit {
   viaje: any = {};
   idViaje: string = '';
+  destino: string = ''; // Para almacenar el destino asociado
   map!: mapboxgl.Map;
 
   constructor(
@@ -36,9 +37,7 @@ export class ViajeencursoPage implements OnInit {
         this.initializeMap(this.viaje.Destino);
       } else {
         console.log('No hay datos locales. Intentando cargar desde Firebase...');
-      }
-
-      // Actualizar desde Firebase
+        // Actualizar desde Firebase
       this.db.object(`viajes/${this.idViaje}`).valueChanges().subscribe(async (data: any) => {
         if (data) {
           this.viaje = data;
@@ -50,6 +49,7 @@ export class ViajeencursoPage implements OnInit {
           this.router.navigate(['/home']);
         }
       });
+      }      
     } else {
       this.router.navigate(['/home']);
       this.mostrarToast('ID de viaje no válido.', 'danger');
@@ -91,7 +91,7 @@ export class ViajeencursoPage implements OnInit {
           (error) => {
             console.error('Error al obtener la ubicación exacta:', error);
           },
-          { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 } // Configuración de alta precisión
+
         );
       } else {
         console.error('No se encontraron coordenadas para el destino.');
