@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
-import { NavController } from '@ionic/angular';
 import { AuthService } from 'src/app/service/auth.service';
+
 
 @Component({
   selector: 'app-login',
@@ -8,13 +8,15 @@ import { AuthService } from 'src/app/service/auth.service';
   styleUrls: ['./login.page.scss'],
 })
 export class LoginPage {
-  email: string = '';   
-  password: string = '';  
+  email: string = '';
+  password: string = '';
 
-  constructor(private navCtrl: NavController,
-    private servAuth: AuthService) {}
+  constructor(private authService: AuthService) {}
 
   login() {
-      this.servAuth.login(this.email,this.password)}
+    this.authService.login(this.email, this.password).catch((error) => {
+      console.error('Error al iniciar sesión:', error);
+      // Aquí puedes manejar el error, por ejemplo, mostrando un mensaje al usuario
+    });
+  }
 }
-
