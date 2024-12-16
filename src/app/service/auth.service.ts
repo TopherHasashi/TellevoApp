@@ -16,6 +16,10 @@ export class AuthService {
     private localdbService: LocaldbService
   ) {}
 
+  redirectToHome() {
+    this.router.navigate(['/home']);
+  }
+
   async login(email: string, contrasena: string) {
     try {
       const result = await this.afAuth.signInWithEmailAndPassword(email, contrasena);

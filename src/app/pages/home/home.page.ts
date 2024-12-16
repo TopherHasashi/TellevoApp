@@ -173,6 +173,10 @@ export class HomePage implements OnInit {
     }
   }
 
+  navegarAHistorial() {
+    this.navCtrl.navigateForward('/historial');
+  }  
+
   navegarAReserva() {
     if (this.reservaActiva?.estado === 'activo') {
       this.navCtrl.navigateForward(`/espera/${this.reservaActiva.idReserva}`);

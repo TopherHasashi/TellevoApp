@@ -3,21 +3,27 @@
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/home"></ion-back-button>
     </ion-buttons>
-    <ion-title>TeLlevoAPP</ion-title>
+    <ion-title>Historial de Viajes</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <h3 class="ion-text-center">Asientos Reservados</h3>
+  <h3 class="ion-text-center">Historial de Viajes</h3>
+
   <ion-list *ngIf="reservas.length > 0">
-    <ion-item *ngFor="let reserva of reservas">
-      <ion-label>
-        <h2>Pasajero: {{ reserva.nombreUsuario }} {{ reserva.apellidoUsuario }}</h2>
-      </ion-label>
-    </ion-item>
+    <ion-card *ngFor="let reserva of reservas">
+      <ion-card-header>
+        <ion-card-title>Destino: {{ reserva.destino }}</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p>Estado: {{ reserva.estado }}<p>
+        <p>Pasajero: {{ reserva.nombreUsuario }} {{ reserva.apellidoUsuario }}</p>
+        <p>Conductor: {{ reserva.nombreConductor }}</p>
+      </ion-card-content>
+    </ion-card>
   </ion-list>
 
   <ion-item *ngIf="reservas.length === 0">
-    <ion-label>No hay reservas para este viaje.</ion-label>
+    <ion-label>No tienes viajes finalizados o cancelados.</ion-label>
   </ion-item>
 </ion-content>

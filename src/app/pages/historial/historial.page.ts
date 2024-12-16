@@ -10,7 +10,7 @@ import { Usuario } from 'src/app/interfaces/iusuario';
   styleUrls: ['./historial.page.scss'],
 })
 export class HistorialPage implements OnInit {
-  reservas: any[] = []; // Lista de reservas
+  reservas: any[] = []; // Lista de reservas finalizadas
   usuario: Usuario | null = null; // Usuario autenticado
 
   constructor(
@@ -46,12 +46,41 @@ export class HistorialPage implements OnInit {
 
   loadReservas() {
     if (this.usuario) {
-      this.db.list('reservas', (ref) => ref.orderByChild('idConductor').equalTo(this.usuario!.id))
+      // Filtrar las reservas del usuario con estado "finalizado" o "cancelado"
+      this.db.list('reservas', (ref) => ref.orderByChild('idUsuario').equalTo(this.usuario!.id))
         .valueChanges()
         .subscribe((data: any[]) => {
-          this.reservas = data;
-          console.log('Reservas relacionadas con los viajes del conductor:', this.reservas);
+          const reservasProcesadas = data.filter((reserva) =>
+            reserva.estado === 'finalizado' || reserva.estado === 'cancelado'
+          );
+          // Obtener datos adicionales para cada reserva
+          this.procesarReservas(reservasProcesadas);
         });
     }
+  }
+
+  procesarReservas(reservas: any[]) {
+    const reservasConDatos: any[] = [];
+    const promesas = reservas.map((reserva) => {
+      return new Promise<void>((resolve) => {
+        this.db.object(`viajes/${reserva.idViaje}`).valueChanges().subscribe((viaje: any) => {
+          if (viaje) {
+            reserva.destino = viaje.Destino || 'Destino no disponible';
+            reserva.nombreConductor = viaje.nombreConductor || 'Conductor no disponible';
+          } else {
+            reserva.destino = 'Destino no disponible';
+            reserva.nombreConductor = 'Conductor no disponible';
+          }
+          reservasConDatos.push(reserva);
+          resolve();
+        });
+      });
+    });
+
+    // Esperar a que todas las promesas se resuelvan
+    Promise.all(promesas).then(() => {
+      this.reservas = reservasConDatos;
+      console.log('Reservas procesadas:', this.reservas);
+    });
   }
 }
