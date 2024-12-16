@@ -44,9 +44,43 @@ export class AuthService {
 
         this.router.navigate(['/home']); // Redirige al home
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al iniciar sesión:', error);
-      throw error;
+      this.showToast(
+        error.code === 'auth/user-not-found'
+          ? 'Usuario no existe'
+          : error.code === 'auth/wrong-password'
+          ? 'Contraseña incorrecta'
+          : 'Usuario y/o contraseña incorrecta'
+      );
+      throw error; // Opcional: propaga el error si necesitas manejarlo más arriba
     }
+  }
+
+  private showToast(message: string) {
+    // Crear el elemento del toast
+    const toast = document.createElement('div');
+    toast.textContent = message;
+
+    // Estilos para posicionar el toast abajo y centrado
+    toast.style.position = 'fixed';
+    toast.style.bottom = '20px'; // A 20px del borde inferior
+    toast.style.left = '50%'; // Centrar horizontalmente
+    toast.style.transform = 'translateX(-50%)'; // Ajustar el centro exacto
+    toast.style.backgroundColor = '#f44336'; // Color rojo para errores
+    toast.style.color = '#fff'; // Texto blanco
+    toast.style.padding = '10px 20px'; // Espaciado interno
+    toast.style.borderRadius = '5px'; // Bordes redondeados
+    toast.style.zIndex = '1000'; // Mostrar por encima de otros elementos
+    toast.style.boxShadow = '0px 4px 6px rgba(0, 0, 0, 0.1)';
+    toast.style.fontSize = '14px'; // Tamaño de letra
+    toast.style.textAlign = 'center'; // Centrar texto
+
+    document.body.appendChild(toast);
+
+    // Eliminar el toast después de 3 segundos
+    setTimeout(() => {
+      document.body.removeChild(toast);
+    }, 3000);
   }
 }
