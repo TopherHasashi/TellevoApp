@@ -27,33 +27,27 @@ export class ViajePreviewPage implements OnInit {
     this.idViaje = this.route.snapshot.paramMap.get('id') || '';
 
     if (this.idViaje) {
-      try {
-        // Intentar cargar datos desde Firebase
-        this.db.object(`viajes/${this.idViaje}`).valueChanges().subscribe(async (data: any) => {
-          if (data) {
-            this.viaje = data;
-            await this.localdbService.guardar(`viaje_${this.idViaje}`, data); // Guardar en almacenamiento local
-          } else {
-            // Si no hay datos en Firebase, cargar desde almacenamiento local
-            this.viaje = await this.localdbService.leer(`viaje_${this.idViaje}`);
-            if (!this.viaje) {
-              this.router.navigate(['/home']);
-              this.mostrarToast('No se encontró el viaje.', 'warning');
-            }
-          }
-        });
-
-        // Cargar reservas asociadas
-        this.loadReservas();
-      } catch (error) {
-        console.error('Error al cargar datos del viaje:', error);
-        // Cargar desde almacenamiento local si hay un problema
-        this.viaje = await this.localdbService.leer(`viaje_${this.idViaje}`);
-        if (!this.viaje) {
-          this.router.navigate(['/home']);
-          this.mostrarToast('No se encontró el viaje.', 'warning');
-        }
+      // Intentar cargar datos desde almacenamiento local primero
+      this.viaje = await this.localdbService.leer(`viaje_${this.idViaje}`);
+      this.reservas = await this.localdbService.leer(`reservas_${this.idViaje}`) || [];
+      
+      if (this.viaje) {
+        console.log('Cargado desde almacenamiento local:', this.viaje);
+      } else {
+        console.log('No hay datos locales. Intentando cargar desde Firebase...');
       }
+
+      // Cargar desde Firebase y actualizar almacenamiento local
+      this.db.object(`viajes/${this.idViaje}`).valueChanges().subscribe(async (data: any) => {
+        if (data) {
+          this.viaje = data;
+          await this.localdbService.guardar(`viaje_${this.idViaje}`, data);
+          console.log('Cargado desde Firebase:', data);
+        }
+      });
+
+      // Cargar reservas asociadas
+      this.loadReservas();
     } else {
       this.router.navigate(['/home']);
       this.mostrarToast('ID de viaje no válido.', 'danger');
@@ -92,6 +86,7 @@ export class ViajePreviewPage implements OnInit {
   cancelarViaje() {
     if (this.idViaje) {
       this.db.object(`viajes/${this.idViaje}`).remove().then(async () => {
+        await this.localdbService.remover(`viaje_${this.idViaje}`);
         this.router.navigate(['/home']);
         this.mostrarToast('Viaje cancelado correctamente.', 'success');
       }).catch(async (error) => {
@@ -119,13 +114,14 @@ export class ViajePreviewPage implements OnInit {
       .valueChanges()
       .subscribe((reservas: any[]) => {
         this.reservas = reservas;
-        // Guardar reservas localmente
-        this.localdbService.guardar(`reservas_${this.idViaje}`, reservas);
+        console.log('Reservas cargadas desde Firebase:', reservas);
+        this.localdbService.guardar(`reservas_${this.idViaje}`, reservas); // Guardar localmente
       }, async (error) => {
         console.error('Error al cargar reservas:', error);
         // Cargar reservas desde almacenamiento local en caso de error
         const storedReservas = await this.localdbService.leer(`reservas_${this.idViaje}`);
         this.reservas = storedReservas || [];
+        console.log('Reservas cargadas desde almacenamiento local:', this.reservas);
       });
   }
 }

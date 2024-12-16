@@ -32,6 +32,7 @@ export class ReservaPage implements OnInit {
       this.nombre = storedUser.nombre;
       this.apellido = storedUser.apellido;
     } else {
+      // Si no hay datos locales, cargar desde Firebase
       this.afAuth.currentUser.then((user) => {
         if (user) {
           this.usuarioId = user.uid;
@@ -55,43 +56,55 @@ export class ReservaPage implements OnInit {
   }
 
   cargarViajes() {
-    this.db.list('viajes').valueChanges().subscribe(async (viajes: any[]) => {
-      if (viajes.length > 0) {
-        this.viajes = viajes.filter((viaje) => viaje.estado !== 'finalizado');
-        await this.localdbService.guardar('viajes', this.viajes); // Guardar viajes localmente
-      } else {
-        // Cargar viajes desde almacenamiento local si no hay datos en Firebase
+    this.db.list('viajes').valueChanges().subscribe(
+      async (viajes: any[]) => {
+        if (viajes.length > 0) {
+          this.viajes = viajes.filter((viaje) => viaje.estado !== 'finalizado');
+          await this.localdbService.guardar('viajes', this.viajes);
+          console.log('Viajes cargados desde Firebase:', this.viajes);
+        }
+      },
+      async (error) => {
+        console.error('Error al cargar viajes desde Firebase:', error);
         this.viajes = (await this.localdbService.leer('viajes')) || [];
+        console.log('Viajes cargados desde almacenamiento local:', this.viajes);
       }
-    });
+    );
   }
 
   async cargarReservaActual() {
-    // Busca si el usuario ya reservó un viaje
     this.db
       .list('reservas', (ref) => ref.orderByChild('idUsuario').equalTo(this.usuarioId))
       .valueChanges()
-      .subscribe(async (reservas: any[]) => {
-        const reservasActivas = reservas.filter((reserva) => reserva.estado === 'activo');
-        if (reservasActivas.length > 0) {
-          this.viajeReservado = reservasActivas[0]; // Se asume una sola reserva activa
-          console.log('Reserva activa actual:', this.viajeReservado);
-          await this.localdbService.guardar(`reserva_${this.viajeReservado.idReserva}`, this.viajeReservado);
-        } else {
-          this.viajeReservado = null;
-          console.log('No hay reservas activas.');
-          // Elimina la información local de la reserva si no hay reservas activas
-          const reservasLocales = await this.localdbService.leer('key');
-          reservasLocales.forEach(async (key: string) => {
-            if (key.startsWith('reserva_')) {
-              await this.localdbService.remover(key);
-              console.log(`Reserva local ${key} eliminada.`);
-            }
-          });
+      .subscribe(
+        async (reservas: any[]) => {
+          const reservasActivas = reservas.filter((reserva) => reserva.estado === 'activo');
+          if (reservasActivas.length > 0) {
+            this.viajeReservado = reservasActivas[0];
+            console.log('Reserva activa cargada desde Firebase:', this.viajeReservado);
+            await this.localdbService.guardar(`reserva_${this.viajeReservado.idReserva}`, this.viajeReservado);
+          } else {
+            this.viajeReservado = null;
+            console.log('No hay reservas activas.');
+            this.limpiarReservasLocales();
+          }
+        },
+        async () => {
+          this.viajeReservado = await this.localdbService.leer(`reserva_${this.usuarioId}`);
+          console.log('Reserva cargada desde almacenamiento local:', this.viajeReservado);
         }
-      });
+      );
   }
-  
+
+  async limpiarReservasLocales() {
+    const keys = await this.localdbService.leer('keys');
+    for (const key of keys) {
+      if (key.startsWith('reserva_')) {
+        await this.localdbService.remover(key);
+        console.log(`Reserva local eliminada: ${key}`);
+      }
+    }
+  }
 
   async reservarViaje(viaje: any) {
     if (this.viajeReservado) {
@@ -124,15 +137,12 @@ export class ReservaPage implements OnInit {
                 if (reservaId) {
                   this.db.object(`reservas/${reservaId}`).update({ idReserva: reservaId });
                   this.cargarReservaActual();
-                  await this.localdbService.guardar(`reserva_${reservaId}`, reservaData); // Guardar localmente
+                  await this.localdbService.guardar(`reserva_${reservaId}`, reservaData);
                 }
               });
             },
           },
-          {
-            text: 'Cancelar',
-            role: 'cancel',
-          },
+          { text: 'Cancelar', role: 'cancel' },
         ],
       });
       toast.present();
